@@ -1,0 +1,13 @@
+name = "DiffEqEnvironments"
+uuid = "57258a95-d752-4c2f-8f02-1bdab83cd17d"
+authors = ["Adrian Hill"]
+version = "0.1.0"
+
+[compat]
+julia = "1.5"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
