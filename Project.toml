@@ -3,11 +3,18 @@ uuid = "57258a95-d752-4c2f-8f02-1bdab83cd17d"
 authors = ["Adrian Hill"]
 version = "0.1.0"
 
+[deps]
+DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
+DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
+ReinforcementLearningBase = "e575027e-6cd6-5018-9292-cdc6200d2b44"
+SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
+
 [compat]
 julia = "1.5"
 
 [extras]
+ReinforcementLearning = "158674fc-8238-5cab-b5ba-03dfc80d1318"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["Test", "ReinforcementLearning"]
