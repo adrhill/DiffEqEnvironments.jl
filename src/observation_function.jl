@@ -1,8 +1,8 @@
 """
 Base struct for all DiffEqEnvironments.jl observations.
 """
-struct ObservationFunction{F}
-    f::F
+struct ObservationFunction
+    f
 end
 
 """  

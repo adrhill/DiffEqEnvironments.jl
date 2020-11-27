@@ -1,8 +1,8 @@
 """
 Base struct for all DiffEqEnvironments.jl rewards.
 """
-struct RewardFunction{F}
-    f::F
+struct RewardFunction
+    f
 end
 
 """  
