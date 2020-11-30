@@ -97,7 +97,7 @@ function DiffEqEnv(problem::ODEProblem,
     reward = nothing
     done = false
     steps = 0
-    t = 0.0
+    t = problem.tspan[1]
 
     ode_params = DiffEqParams{T}(problem, dt, solver, reltol, abstol)
 
@@ -113,15 +113,17 @@ RLBase.get_state(env::DiffEqEnv) = env.observation # returns observed state, not
 RLBase.get_reward(env::DiffEqEnv) = env.reward
 RLBase.get_terminal(env::DiffEqEnv) = env.done
 
-function reset!(env::DiffEqEnv)
+function RLBase.reset!(env::DiffEqEnv{T}) where {T<:Real}
     # Reset environment
-    env.state = env.ode_params.problem.u0
+    env.state = T.(env.ode_params.problem.u0)
     env.observation = env.observation_fn(env.state) 
     env.action = nothing
     env.reward = nothing
     env.done = false
     env.steps = 0
-    env.t = env.ode_params.problem.tspan[0]
+    env.t = env.ode_params.problem.tspan[1]
+
+    return nothing
 end
 
 function (env::DiffEqEnv)(action)
@@ -138,7 +140,7 @@ function (env::DiffEqEnv)(action)
             reltol=env.ode_params.reltol, 
             abstol=env.ode_params.abstol,
             save_everystep=false, save_start=false) # only save values at tspan[2]
-    state_next = sol.u 
+    state_next = sol.u[1] # unpack Array{Array{T,1},1}
     
     # Update environment buffer
     env.observation = env.observation_fn(state_next)
