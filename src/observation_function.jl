@@ -5,7 +5,7 @@ struct ObservationFunction
     f
 end
 
-(of::ObservationFunction)(s) = observation_fn.f(s)
+(of::ObservationFunction)(s) = of.f(s)
 
 """  
 General observation of form ``o=f(s)``.
