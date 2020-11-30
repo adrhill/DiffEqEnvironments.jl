@@ -5,6 +5,9 @@ struct RewardFunction
     f
 end
 
+(rf::RewardFunction)(s,a,s_next) = rf.f(s,a,s_next)
+
+
 """  
 Default reward of form ``r(s,a,s')``.
 """
