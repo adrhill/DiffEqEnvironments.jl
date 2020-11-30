@@ -24,6 +24,7 @@ mutable struct DiffEqEnv{T} <: AbstractEnv
     reward::Union{Nothing,T}                # last scalar reward
     done::Bool                              # true if in terminal state 
     steps::Int                              # counter for steps taken in episode
+    t::T                                    # current time
 end
 
 """
@@ -96,13 +97,14 @@ function DiffEqEnv(problem::ODEProblem,
     reward = nothing
     done = false
     steps = 0
+    t = 0.0
 
     ode_params = DiffEqParams{T}(problem, dt, solver, reltol, abstol)
 
     env = DiffEqEnv{T}(ode_params, 
             observation_space, action_space,
             observation_fn, reward_fn,
-            state, observation, action, reward, done, steps)
+            state, observation, action, reward, done, steps, t)
     return env
 end
 
@@ -119,28 +121,32 @@ function reset!(env::DiffEqEnv)
     env.reward = nothing
     env.done = false
     env.steps = 0
+    env.t = env.ode_params.problem.tspan[0]
 end
 
-function (env::DiffEqEnv)(action::Union{Real,Vector{Real}})
+function (env::DiffEqEnv)(action)
     @assert action in env.action_space
 
-    # Integrate ODE
-    tstart = env.ode_params.tspan[0] + env.steps * env.ode_params.dt 
-    tspan = (t_start, t_start + env.steps)
+    # Remake ODEProblem over new tspan
+    t_end =  env.t + env.ode_params.dt
+    tspan = (env.t, t_end)
     prob = remake(env.ode_params.problem; 
                 u0=env.state, tspan=tspan, p=action)
+
+    # Integrate ODE
     sol = solve(prob, env.ode_params.solver,
             reltol=env.ode_params.reltol, 
             abstol=env.ode_params.abstol,
             save_everystep=false, save_start=false) # only save values at tspan[2]
     state_next = sol.u 
     
-    # Update environment state, termination status & reward
+    # Update environment buffer
     env.observation = env.observation_fn(state_next)
     env.action = action
-    env.reward = env.reward_fn(env.state, action, state_next)
-    env.state = state_next # ! DON'T update before reward !
-    env.done = (env.steps * env.dt) >= env.ode_params.tspan[2]
+    env.reward = env.reward_fn(env.state, action, state_next) # update before env.state!
+    env.state = state_next 
+    env.t = t_end # update before env.done!
+    env.done = env.t >= env.ode_params.problem.tspan[2]
     env.steps += 1
 
     return nothing
