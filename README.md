@@ -4,7 +4,7 @@
 |:-------------------------------------------------------------------------------:|:---------------------:|:-------------------------------:|
 | [![][docs-stable-img]][docs-stable-url] [![][docs-latest-img]][docs-latest-url] | [![][ci-img]][ci-url] | [![][codecov-img]][codecov-url] |
 
-DiffEqEnvironments.jl bridges the gap between reinforcement learning and control theory by providing an easy way to **turn differential equations into RL environments** using interfaces from [ReinforcementLearning.jl](https://juliareinforcementlearning.org). Run and benchmark common algorithms from [ReinforcementLearningZoo.jl](https://github.com/JuliaReinforcementLearning/ReinforcementLearningZoo.jl) on ODEs in a matter of minutes!
+DiffEqEnvironments.jl bridges the gap between reinforcement learning and control theory by providing an easy way to **turn differential equations into RL environments**. Since it uses interfaces from [ReinforcementLearning.jl](https://juliareinforcementlearning.org), common algorithms from [ReinforcementLearningZoo.jl](https://github.com/JuliaReinforcementLearning/ReinforcementLearningZoo.jl) can be run and benchmarked on ODEs in a matter of minutes!
 
 
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
