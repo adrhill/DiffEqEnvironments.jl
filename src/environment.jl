@@ -12,8 +12,8 @@ end
 mutable struct DiffEqEnv{T} <: AbstractEnv
     ode_params::DiffEqParams{T}
     # Parameters for ReinforcementLearning
-    observation_space::MultiContinuousSpace{Vector{T}}
-    action_space::MultiContinuousSpace{Vector{T}}
+    observation_space::Union{ContinuousSpace{T},MultiContinuousSpace{Vector{T}}}
+    action_space::Union{ContinuousSpace{T},MultiContinuousSpace{Vector{T}}}
     # Observation & reward functions
     observation_fn::ObservationFunction     # obvervation o=f(s)
     reward_fn::RewardFunction               # reward function r(s,a,s')
@@ -30,67 +30,70 @@ end
 """
 User-facing constructor for the DiffEqEnv
 """
-function DiffEqEnv(problem::ODEProblem, 
-            reward_fn::RewardFunction,
-            n_actions::Int,
-            dt::Real;
-            #= = Keyword arguments = =#
-            observation_fn::ObservationFunction=FullObservationFunction(),
-            o_ub::Union{Nothing,Vector{<:Real}}=nothing, # upper bound for observation space
-            o_lb::Union{Nothing,Vector{<:Real}}=nothing, # lower bound for observation space
-            a_ub::Union{Nothing,Vector{<:Real}}=nothing, # upper bound for action space
-            a_lb::Union{Nothing,Vector{<:Real}}=nothing, # lower bound for action space
-            solver::DiffEqBase.AbstractODEAlgorithm=Tsit5(), 
-            reltol::Real=1e-8, 
-            abstol::Real=1e-8,
-            # TODO: add more kwargs for integrator
-            T=Float32
-            )
+function DiffEqEnv(
+    problem::ODEProblem, 
+    reward_fn::RewardFunction,
+    n_actions::Int,
+    dt::Real;
+    #== Keyword arguments ==#
+    observation_fn::ObservationFunction=FullObservationFunction(),
+    o_ub::Union{Nothing,Real,Vector{<:Real}}=nothing, # upper bound for observation space
+    o_lb::Union{Nothing,Real,Vector{<:Real}}=nothing, # lower bound for observation space
+    a_ub::Union{Nothing,Real,Vector{<:Real}}=nothing, # upper bound for action space
+    a_lb::Union{Nothing,Real,Vector{<:Real}}=nothing, # lower bound for action space
+    solver::DiffEqBase.AbstractODEAlgorithm=Tsit5(), 
+    reltol::Real=1e-8, 
+    abstol::Real=1e-8, # TODO: add more kwargs for integrator
+    T=Float32
+    )
     
     # Turn scalar state into 1D-vector
     s0 = problem.u0
     if s0 isa Real 
         s0 = [s0]
     end
-    s0 = T.(s0) # convert type
+    s0 = T.(s0) # Convert type
     
     o0 = observation_fn.f(s0) # initial observations
     n_states = length(s0)
     n_observations = length(o0)
 
-    # Set default upper and lower bounds for MultiContinuousSpace
-    maxval = typemax(T)
-    if isnothing(o_lb)
-        o_lb = -maxval * ones(T, n_states)
+    # Helper function to set action and observation spaces
+    function set_space(lb, ub, dim)
+        # Check if types match
+        typeof(lb) == typeof(ub) ||
+            throw(ArgumentError("$(typeof(lb)) != $(typeof(ub)), types must match"))
+        
+        # Set defaults if no bounds are provided
+        if isnothing(lb) 
+            if dim == 1
+                ub = T(1e38)
+                lb = -ub
+            else
+                ub = T(1e38) * ones(T, dim)
+                lb = - ub
+            end
+        end
+
+        # Check if sizes match
+        length(lb) == length(ub) ||
+            throw(ArgumentError("$(size(lb)) != $(size(ub)), size must match"))
+        length(lb) == dim ||
+            throw(ArgumentError("$(size(lb)) != $(dim), size must match"))
+        
+        # Return ContinuousSpace or MultiContinuousSpace
+        if lb isa Real
+            return ContinuousSpace(T(lb), T(ub))
+        elseif lb isa Vector{<:Real}
+            return MultiContinuousSpace(T.(lb), T.(ub))
+        end
     end
-    if isnothing(o_ub)
-        o_ub = maxval * ones(T, n_states)
-    end
-    if isnothing(a_lb)
-        a_lb = -maxval * ones(T, n_actions)
-    end
-    if isnothing(a_ub)
-        a_ub = maxval * ones(T, n_actions)
-    end
-
-    # Check inputs for dimension mismatches
-    size(o_lb) == size(o_ub) ||
-        throw(ArgumentError("$(size(o_lb)) != $(size(o_ub)), size must match"))
-
-    size(o_lb) == size(o0) ||
-        throw(ArgumentError("$(size(o_lb)) != $(size(o0)), size must match"))
-
-    size(a_lb) == size(a_ub) ||
-        throw(ArgumentError("$(size(a_lb)) != $(size(a_ub)), size must match"))
-
-    length(a_lb) == n_actions ||
-        throw(ArgumentError("$(size(a_lb)) != $(n_actions), size must match"))
-
+    
     # Set observation and action spaces
-    observation_space = MultiContinuousSpace(o_lb, o_ub) # TODO: imple
-    action_space = MultiContinuousSpace(a_lb, a_ub)
+    observation_space = set_space(o_lb, o_ub, n_observations)
+    action_space = set_space(a_lb, a_ub, n_actions)
 
-    # Initialize previous step buffer
+    # Initialize buffer holding previous step
     state = s0
     observation = o0
     action = nothing
@@ -113,7 +116,7 @@ RLBase.get_state(env::DiffEqEnv) = env.observation # returns observed state, not
 RLBase.get_reward(env::DiffEqEnv) = env.reward
 RLBase.get_terminal(env::DiffEqEnv) = env.done
 
-function RLBase.reset!(env::DiffEqEnv{T}) where {T<:Real}
+function RLBase.reset!(env::DiffEqEnv{T}) where {T <: Real}
     # Reset environment
     env.state = T.(env.ode_params.problem.u0)
     env.observation = env.observation_fn(env.state) 
