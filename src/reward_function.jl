@@ -36,7 +36,7 @@ Quadratic reward of type ``r(s,a)=-s^T\\mathbf{Q}s - s^T\\mathbf{Q}s``,
 commonly used in optimal control / LQR.
 """
 function QuadraticRewardFunction(Q,R)
-    _r(s,a,s_next) = -s'*Q*s - a'*R*a
+    _r(s,a,s_next) = -s_next'*Q*s_next - a'*R*a
     return RewardFunction(_r)
 end
 
