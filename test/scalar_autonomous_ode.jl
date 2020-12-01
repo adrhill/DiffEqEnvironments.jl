@@ -31,7 +31,7 @@ env = DiffEqEnv(problem, r, n_actions, dt)
 
 # Step through env until done
 while !env.done
-    env([0f0]) # action doesn't matter for autonomous system
+    env(0f0) # action doesn't matter for autonomous system
 end
 
 @test env.steps == (tspan[2]-tspan[1])/dt
@@ -46,9 +46,17 @@ RLBase.reset!(env)
 
 # Step through env until done
 while !env.done
-    env([0f0]) # action doesn't matter for autonomous system
+    env(0f0) # action doesn't matter for autonomous system
 end
 
 @test env.steps == (tspan[2]-tspan[1])/dt
 @test env.t ≈ problem.tspan[2]
 @test env.state[1] ≈ sol.u[end]
+
+
+#===== Remake env using different types T =====#
+env64 = DiffEqEnv(problem, r, n_actions, dt, T=Float64)
+@test env64.state[1] == s0 
+
+env16 = DiffEqEnv(problem, r, n_actions, dt, T=Float16)
+@test env16.state[1] == s0 
