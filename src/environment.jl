@@ -54,7 +54,7 @@ function DiffEqEnv(
     end
     s0 = T.(s0) # Convert type
     
-    o0 = observation_fn.f(s0) # initial observations
+    o0 = observation_fn(s0, nothing) # initial observations
     n_states = length(s0)
     n_observations = length(o0)
 
@@ -119,8 +119,8 @@ RLBase.get_terminal(env::DiffEqEnv) = env.done
 function RLBase.reset!(env::DiffEqEnv{T}) where {T <: Real}
     # Reset environment
     env.state = T.(env.ode_params.problem.u0)
-    env.observation = env.observation_fn(env.state) 
     env.action = nothing
+    env.observation = env.observation_fn(env.state, env.action) 
     env.reward = nothing
     env.done = false
     env.steps = 0
@@ -146,7 +146,7 @@ function (env::DiffEqEnv)(action)
     state_next = sol.u[1] # unpack Array{Array{T,1},1}
     
     # Update environment buffer
-    env.observation = env.observation_fn(state_next)
+    env.observation = env.observation_fn(state_next, action)
     env.action = action
     env.reward = env.reward_fn(env.state, action, state_next) # update before env.state!
     env.state = state_next 

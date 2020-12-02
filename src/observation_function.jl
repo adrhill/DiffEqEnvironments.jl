@@ -5,25 +5,29 @@ struct ObservationFunction
     f
 end
 
-(of::ObservationFunction)(s) = of.f(s)
+(of::ObservationFunction)(s,a) = of.f(s, a)
 
 """  
-General observation of form ``o=f(s)``.
+General observation of form ``o=f(s,a)``.
 """
-function CustomObservationFunction(s)
-    return ObservationFunction(s)
+function CustomObservationFunction(of)
+    return ObservationFunction(of)
 end
 
 """  
 Full observation of state: ``o=s``.
 """
 function FullObservationFunction()
-    return ObservationFunction(identity) # returns its argument
+    return ObservationFunction((s, a) -> identity(s)) # return argument s
 end
 
 """  
 Linear relationship of form ``o=\\mathbf{C}s`` between state and observation.
 """
 function LinearObservationFunction(C)
-    return ObservationFunction(s->C*s)
+    return ObservationFunction((s, a) -> C * s)
+end
+
+function LinearObservationFunction(C, D)
+    return ObservationFunction((s, a) -> C * s + D * a)
 end
