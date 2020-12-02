@@ -6,12 +6,14 @@ version = "0.1.0"
 [deps]
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
+OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 ReinforcementLearningBase = "e575027e-6cd6-5018-9292-cdc6200d2b44"
 
 [compat]
 ControlSystems = "0.8"
 DiffEqBase = "6.49"
 DifferentialEquations = "6.15"
+OrdinaryDiffEq = "5.45"
 ReinforcementLearning = "0.7"
 ReinforcementLearningBase = "0.8.5"
 SafeTestsets = "0.0.1"

@@ -2,6 +2,7 @@ module DiffEqEnvironments
 
 using ReinforcementLearningBase
 using DiffEqBase: AbstractODEAlgorithm
+using OrdinaryDiffEq: isadaptive
 using DifferentialEquations
 
 include("reward_function.jl")

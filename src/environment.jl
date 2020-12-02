@@ -5,8 +5,7 @@ mutable struct DiffEqParams{T}
     problem::ODEProblem             # ODEProblem which is simulated
     dt::T                           # time step size
     solver::AbstractODEAlgorithm    # solver to use to solve ODE
-    reltol::T                       # relative tolerance for ODE solver
-    abstol::T                       # absolute tolerance for ODE solver
+    solve_args::Dict                # dictionary holding kwargs for ODE solve command
 end
 
 mutable struct DiffEqEnv{T} <: AbstractEnv
@@ -35,17 +34,26 @@ function DiffEqEnv(
     reward_fn::RewardFunction,
     n_actions::Int,
     dt::Real;
-    #== Keyword arguments ==#
+    #= Keyword arguments =#
     observation_fn::ObservationFunction=FullStateObservation(),
     o_ub::Union{Nothing,Real,Vector{<:Real}}=nothing, # upper bound for observation space
     o_lb::Union{Nothing,Real,Vector{<:Real}}=nothing, # lower bound for observation space
     a_ub::Union{Nothing,Real,Vector{<:Real}}=nothing, # upper bound for action space
     a_lb::Union{Nothing,Real,Vector{<:Real}}=nothing, # lower bound for action space
-    solver::DiffEqBase.AbstractODEAlgorithm=Tsit5(), 
+    solver::DiffEqBase.AbstractODEAlgorithm=Euler(), 
     reltol::Real=1e-8, 
     abstol::Real=1e-8, # TODO: add more kwargs for integrator
     T=Float32
     )
+
+    # Save solver arguments
+    solve_args = Dict{Symbol,Any}(
+        :reltol => reltol, 
+        :abstol => abstol,
+        :save_everystep => false, 
+        :save_start => false) # only output terminal value
+
+    ode_params = DiffEqParams{T}(problem, dt, solver, solve_args)
     
     # Turn scalar state into 1D-vector
     s0 = problem.u0
@@ -102,8 +110,6 @@ function DiffEqEnv(
     steps = 0
     t = problem.tspan[1]
 
-    ode_params = DiffEqParams{T}(problem, dt, solver, reltol, abstol)
-
     env = DiffEqEnv{T}(ode_params, 
             observation_space, action_space,
             observation_fn, reward_fn,
@@ -111,7 +117,7 @@ function DiffEqEnv(
     return env
 end
 
-RLBase.get_actions(env::DiffEqEnv) = env.action
+RLBase.get_actions(env::DiffEqEnv) = env.action_space
 RLBase.get_state(env::DiffEqEnv) = env.observation # returns observed state, not markov state!
 RLBase.get_reward(env::DiffEqEnv) = env.reward
 RLBase.get_terminal(env::DiffEqEnv) = env.done
@@ -139,12 +145,13 @@ function (env::DiffEqEnv)(action)
                 u0=env.state, tspan=tspan, p=action)
 
     # Integrate ODE
-    sol = solve(prob, env.ode_params.solver,
-            reltol=env.ode_params.reltol, 
-            abstol=env.ode_params.abstol,
-            save_everystep=false, save_start=false) # only save values at tspan[2]
+    if isadaptive(env.ode_params.solver)
+        sol = solve(prob, env.ode_params.solver; env.ode_params.solve_args...)
+    else # add timestep argument dt for fixed step-width solvers
+        sol = solve(prob, env.ode_params.solver; env.ode_params.solve_args..., dt=t_end)
+    end
     state_next = sol.u[1] # unpack Array{Array{T,1},1}
-    
+
     # Update environment buffer
     env.observation = env.observation_fn(state_next, action)
     env.action = action
