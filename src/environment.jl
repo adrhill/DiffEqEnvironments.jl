@@ -36,7 +36,7 @@ function DiffEqEnv(
     n_actions::Int,
     dt::Real;
     #== Keyword arguments ==#
-    observation_fn::ObservationFunction=FullObservationFunction(),
+    observation_fn::ObservationFunction=FullStateObservation(),
     o_ub::Union{Nothing,Real,Vector{<:Real}}=nothing, # upper bound for observation space
     o_lb::Union{Nothing,Real,Vector{<:Real}}=nothing, # lower bound for observation space
     a_ub::Union{Nothing,Real,Vector{<:Real}}=nothing, # upper bound for action space

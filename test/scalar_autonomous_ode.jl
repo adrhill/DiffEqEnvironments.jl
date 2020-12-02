@@ -1,7 +1,7 @@
 using DiffEqEnvironments
 using DifferentialEquations
-using Test
 using ReinforcementLearningBase
+using Test
 
 """
 This test defines an autonomous system and checks
@@ -19,7 +19,7 @@ problem = ODEProblem(ode, s0, tspan)
 sol = solve(problem, Tsit5())
 
 # Define DiffEqEnv
-r = ASRewardFunction((a,s) -> sum(abs2,s))
+r = ASReward((a,s) -> sum(abs2,s))
 n_actions = 1
 dt = 0.1
 env = DiffEqEnv(problem, r, n_actions, dt)

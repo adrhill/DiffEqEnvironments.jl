@@ -1,9 +1,9 @@
 using DiffEqEnvironments
 using DifferentialEquations
+using ReinforcementLearning
 using LinearAlgebra
 using ControlSystems
 using Test
-using ReinforcementLearningBase
 
 """
 This test defines an SISO system of form
@@ -22,7 +22,7 @@ T = Float32
 
 # System matrices
 A = [0 1; 0 0]
-B = [0, 1]
+B = [0; 1]
 
 # weights for quadratic cost function
 Q = I * 10
@@ -46,7 +46,7 @@ K = lqr(A, B, Q, R)
 π(s) = clamp.(-K * s, a_lb, a_ub) #  LQR controller w/ saturation
 
 # Define DiffEqEnv
-r = QuadraticRewardFunction(Q, R)
+r = QuadraticReward(Q, R)
 n_actions = 1
 dt = 0.1
 env = DiffEqEnv(prob_lti, r, n_actions, dt, a_lb=a_lb, a_ub=a_ub)
