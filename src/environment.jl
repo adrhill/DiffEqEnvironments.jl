@@ -55,14 +55,9 @@ function DiffEqEnv(
 
     ode_params = DiffEqParams{T}(problem, dt, solver, solve_args)
     
-    # Turn scalar state into 1D-vector
-    s0 = problem.u0
-    if s0 isa Real 
-        s0 = [s0]
-    end
-    s0 = T.(s0) # Convert type
-    
-    o0 = observation_fn(s0, nothing) # initial observations
+    # Set inital state and observation
+    s0 = T.(problem.u0) # Convert type
+    o0 = T.(observation_fn(s0, nothing)) # initial observations
     n_states = length(s0)
     n_observations = length(o0)
 
@@ -126,7 +121,7 @@ function RLBase.reset!(env::DiffEqEnv{T}) where {T <: Real}
     # Reset environment
     env.state = T.(env.ode_params.problem.u0)
     env.action = nothing
-    env.observation = env.observation_fn(env.state, env.action) 
+    env.observation = T.(env.observation_fn(env.state, env.action))
     env.reward = nothing
     env.done = false
     env.steps = 0
