@@ -82,9 +82,9 @@ version = "1.16.0+6"
 
 [[ChainRulesCore]]
 deps = ["LinearAlgebra", "MuladdMacro", "SparseArrays"]
-git-tree-sha1 = "6e0e251d98bd909a227e905e2700555e33796042"
+git-tree-sha1 = "793ea43b751e5c6cc6bbd82970af2952a5afb7d1"
 uuid = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
-version = "0.9.20"
+version = "0.9.21"
 
 [[ColorSchemes]]
 deps = ["ColorTypes", "Colors", "FixedPointNumbers", "Random", "StaticArrays"]
@@ -264,9 +264,9 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[Distributions]]
 deps = ["FillArrays", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", "SparseArrays", "SpecialFunctions", "StaticArrays", "Statistics", "StatsBase", "StatsFuns"]
-git-tree-sha1 = "6493eec6bfb1e578cff879b66844807e3625c83c"
+git-tree-sha1 = "0be6ad72740c9c77186b7c8d3591a67c906fc4e6"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
-version = "0.24.4"
+version = "0.24.5"
 
 [[DocStringExtensions]]
 deps = ["LibGit2", "Markdown", "Pkg", "Test"]
@@ -678,9 +678,9 @@ version = "0.7.1"
 
 [[ModelingToolkit]]
 deps = ["ArrayInterface", "DataStructures", "DiffEqBase", "DiffEqJump", "DiffRules", "Distributed", "DocStringExtensions", "IfElse", "LabelledArrays", "Latexify", "Libdl", "LightGraphs", "LinearAlgebra", "MacroTools", "NaNMath", "RecursiveArrayTools", "Requires", "RuntimeGeneratedFunctions", "SafeTestsets", "SparseArrays", "SpecialFunctions", "StaticArrays", "SymbolicUtils", "TreeViews", "UnPack", "Unitful"]
-git-tree-sha1 = "b9b5222bb87535c5c8bbb3324e7d417c9c14cde7"
+git-tree-sha1 = "a3bcdcee7660a146cea219bd96ae84334c279189"
 uuid = "961ee093-0014-501f-94e3-6117800e7a78"
-version = "4.0.7"
+version = "4.0.8"
 
 [[MuladdMacro]]
 git-tree-sha1 = "c6190f9a7fc5d9d5915ab29f2134421b12d24a68"
