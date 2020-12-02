@@ -4,7 +4,6 @@ using LinearAlgebra
 using ControlSystems
 using Test
 using ReinforcementLearningBase
-using Plots
 
 """
 This test defines an SISO system of form
