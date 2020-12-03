@@ -4,6 +4,7 @@ authors = ["Adrian Hill"]
 version = "0.1.0"
 
 [deps]
+ControlSystems = "a6e380b2-a6ca-5380-bf3e-84a91bcd477e"
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
@@ -20,11 +21,10 @@ SafeTestsets = "0.0.1"
 julia = "1.5"
 
 [extras]
-ControlSystems = "a6e380b2-a6ca-5380-bf3e-84a91bcd477e"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 ReinforcementLearning = "158674fc-8238-5cab-b5ba-03dfc80d1318"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["ControlSystems", "LinearAlgebra", "ReinforcementLearning", "SafeTestsets", "Test"]
+test = ["LinearAlgebra", "ReinforcementLearning", "SafeTestsets", "Test"]
