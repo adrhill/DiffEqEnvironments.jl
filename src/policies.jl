@@ -32,11 +32,16 @@ function LQRPolicy(A, B, Q, R, dt, a_lb, a_ub)
     return LinearFeedbackPolicy(-K, a_lb, a_ub)
 end
 
+
 function _dlqr_from_cont_ss(A, B, Q, R, dt)
-    # Discretize continuous state-space model 
-    Ā = exp(A * dt)
-    B̄ = A \ (Ā - I) * B
-    
+    # Build discrete state-space model  using place-holder matrices C, D
+    nx = size(A)[1]
+    na = size(B[:,:])[2]
+
+    C = zeros(1, nx)
+    D = zeros(1, na)
+    sysd = ss(A, B, C, D, dt)
+
     # Compute discrete LQR gain matrix
-    K = dlqr(Ā, B̄, Q, R)
+    K = dlqr(sysd, Q, R)
 end
