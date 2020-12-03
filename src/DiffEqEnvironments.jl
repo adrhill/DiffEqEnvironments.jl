@@ -20,7 +20,7 @@ export CustomObservation, LinearObservation
 export CustomStateObservation, LinearStateObservation, FullStateObservation
 
 # Export Policies
-export FeedbackPolicy, LinearFee
+export FeedbackPolicy, LinearFeedbackPolicy, LQRPolicy
 
 # Export environment
 export DiffEqEnv
