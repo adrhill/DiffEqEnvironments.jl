@@ -1,10 +1,12 @@
 module DiffEqEnvironments
 
+using ControlSystems
 using ControlSystems: state_space_validation
-using ReinforcementLearningBase
 using DiffEqBase: AbstractODEAlgorithm
-using OrdinaryDiffEq: isadaptive
 using DifferentialEquations
+using LinearAlgebra
+using OrdinaryDiffEq: isadaptive
+using ReinforcementLearningBase
 
 include("rewards.jl")
 include("observations.jl")
