@@ -1,6 +1,6 @@
 module DiffEqEnvironments
 
-using ControlSystems
+using ControlSystems: state_space_validation
 using ReinforcementLearningBase
 using DiffEqBase: AbstractODEAlgorithm
 using OrdinaryDiffEq: isadaptive

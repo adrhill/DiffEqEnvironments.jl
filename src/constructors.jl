@@ -1,4 +1,10 @@
-function LTIQuadraticEnv(A,B,C,D,Q,R,
+function LTIQuadraticEnv(
+    A::AbstractVecOrMat,
+    B::AbstractVecOrMat,
+    C::AbstractVecOrMat,
+    D::AbstractVecOrMat,
+    Q::AbstractVecOrMat,
+    R::AbstractVecOrMat,
     s0::Union{Real,Vector{<:Real}},
     tspan::Tuple{<:Real,<:Real},
     dt::Real;
@@ -13,6 +19,9 @@ function LTIQuadraticEnv(A,B,C,D,Q,R,
     T=Float32
     )
 
+    n_states, n_actions, _ = state_space_validation(A,B,C,D,Continuous())
+    length(s0) == n_states || throw(ArgumentError("Length $(length(s0)) of s0 doesn't match state dimension $(n_states)")) 
+
     function ode(s, a, t) 
         ṡ = A * s + B * a
     end
@@ -20,15 +29,6 @@ function LTIQuadraticEnv(A,B,C,D,Q,R,
     problem = ODEProblem(ode, s0, tspan)
     reward_fn = QuadraticReward(Q, R)
     observation_fn = LinearObservation(C, D)
-    
-    # Determine dimension of action
-    if B isa Vector || B isa Real
-        n_actions = 1
-    elseif B isa Matrix
-        n_actions = size(B)[2]
-    else
-        throw(ArgumentError("Input argument B is of type $(typeof(B))"))
-    end 
 
     return DiffEqEnv(
         problem, 
