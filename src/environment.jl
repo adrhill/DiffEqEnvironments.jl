@@ -130,7 +130,7 @@ function RLBase.reset!(env::DiffEqEnv{T}) where {T <: Real}
     return nothing
 end
 
-function (env::DiffEqEnv)(action)
+function (env::DiffEqEnv{T})(action) where {T <: Real}
     @assert action in env.action_space
 
     # Remake ODEProblem over new tspan
@@ -145,11 +145,11 @@ function (env::DiffEqEnv)(action)
     else # add timestep argument dt for fixed step-width solvers
         sol = solve(prob, env.ode_params.solver; env.ode_params.solve_args..., dt=t_end)
     end
-    state_next = sol.u[1] # unpack Array{Array{T,1},1}
-
+    state_next = T.(sol.u[1]) # unpack Array{Array{T,1},1}
+    
     # Update environment buffer
-    env.observation = env.observation_fn(state_next, action)
-    env.action = action
+    env.observation = T.(env.observation_fn(state_next, action))
+    env.action = T.(action)
     env.reward = env.reward_fn(env.state, action, state_next) # update before env.state!
     env.state = state_next 
     env.t = t_end # update before env.done!
