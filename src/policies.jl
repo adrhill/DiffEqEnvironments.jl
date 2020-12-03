@@ -34,7 +34,7 @@ end
 
 
 function _dlqr_from_cont_ss(A, B, Q, R, dt)
-    # Build discrete state-space model  using place-holder matrices C, D
+    # Build discrete state-space model using place-holder matrices C, D
     nx = size(A)[1]
     na = size(B[:,:])[2]
 
@@ -43,5 +43,5 @@ function _dlqr_from_cont_ss(A, B, Q, R, dt)
     sysd = ss(A, B, C, D, dt)
 
     # Compute discrete LQR gain matrix
-    K = dlqr(sysd, Q, R)
+    K = lqr(sysd, Q, R)
 end
