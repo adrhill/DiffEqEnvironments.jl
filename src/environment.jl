@@ -43,7 +43,7 @@ function DiffEqEnv(
     solver::DiffEqBase.AbstractODEAlgorithm=Euler(), 
     reltol::Real=1e-8, 
     abstol::Real=1e-8, # TODO: add more kwargs for integrator
-    T=Float32
+    T=Float64
     )
 
     # Save solver arguments
