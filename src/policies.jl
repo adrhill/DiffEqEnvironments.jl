@@ -5,7 +5,14 @@ struct FeedbackPolicy <: AbstractPolicy
     π 
 end
 
+"""
+Implement interface required for RLCore agent
+"""
 (p::FeedbackPolicy)(env) = p.π(get_state(env))
+
+# policy stays constant
+RLBase.update!(p::FeedbackPolicy, experience) = nothing 
+RLBase.update!(p::FeedbackPolicy, args...) = nothing
 
 """
 Linear state feedback policy ``a=\\pi(s)=Ks``
