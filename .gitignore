@@ -1,5 +1,11 @@
+# Julia
 *.jl.*.cov
 *.jl.cov
 *.jl.mem
+
+# macOS
+*.DS_Store
+
+# folders
 /docs/build
 /_draft
