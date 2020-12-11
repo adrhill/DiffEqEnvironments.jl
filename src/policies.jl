@@ -17,8 +17,8 @@ RLBase.update!(p::FeedbackPolicy, args...) = nothing
 """
 Linear state feedback policy ``a=\\pi(s)=Ks``
 """
-LinearFeedbackPolicy(K) = FeedbackPolicy(s -> K * s)
-LinearFeedbackPolicy(K, a_lb, a_ub) = FeedbackPolicy(s -> clamp.(K * s, a_lb, a_ub))    
+LinearFeedbackPolicy(K) = FeedbackPolicy(s -> K * reshape(s,:))
+LinearFeedbackPolicy(K, a_lb, a_ub) = FeedbackPolicy(s -> clamp.(K * reshape(s,:), a_lb, a_ub))    
 
 """
 Discrete LQR state feedback policy.
