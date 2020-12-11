@@ -131,6 +131,14 @@ function RLBase.reset!(env::DiffEqEnv{T}) where {T <: Real}
 end
 
 function (env::DiffEqEnv{T})(action) where {T <: Real}
+    # type of action must fit with type of env.action_space
+    action = T.(action)
+
+    # unpack Array{T,1} with single value for use in ContinuousSpace{T}
+    if length(action) == 1 
+        action = action[] 
+    end
+    
     @assert action in env.action_space
 
     # Remake ODEProblem over new tspan
