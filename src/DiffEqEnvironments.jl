@@ -1,7 +1,6 @@
 module DiffEqEnvironments
 
-using ControlSystems
-using ControlSystems: state_space_validation
+using ControlSystems: ss, lqr, state_space_validation, Continuous
 using DiffEqBase: AbstractODEAlgorithm
 using DifferentialEquations
 using LinearAlgebra
