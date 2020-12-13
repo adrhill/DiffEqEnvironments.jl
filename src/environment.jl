@@ -10,6 +10,7 @@ end
 
 mutable struct DiffEqEnv{T} <: AbstractEnv
     ode_params::DiffEqParams{T}
+    ic_sampler::ICSampler
     # Parameters for ReinforcementLearning
     observation_space::Union{ContinuousSpace{T},MultiContinuousSpace{Vector{T}}}
     action_space::Union{ContinuousSpace{T},MultiContinuousSpace{Vector{T}}}
@@ -27,13 +28,15 @@ mutable struct DiffEqEnv{T} <: AbstractEnv
 end
 
 """
-User-facing constructor for the DiffEqEnv
+User-facing constructor for DiffEqEnv with IC sampling
 """
 function DiffEqEnv(
     problem::ODEProblem, 
     reward_fn::RewardFunction,
     n_actions::Int,
-    dt::Real;
+    dt::Real,
+    s0_lb::Union{Real,Vector{<:Real}},
+    s0_ub::Union{Real,Vector{<:Real}};
     #= Keyword arguments =#
     observation_fn::ObservationFunction=FullStateObservation(),
     o_ub::Union{Nothing,Real,Vector{<:Real}}=nothing, # upper bound for observation space
@@ -45,7 +48,6 @@ function DiffEqEnv(
     abstol::Real=1e-8, # TODO: add more kwargs for integrator
     T=Float64
     )
-
     # Save solver arguments
     solve_args = Dict{Symbol,Any}(
         :reltol => reltol, 
@@ -56,8 +58,10 @@ function DiffEqEnv(
     ode_params = DiffEqParams{T}(problem, dt, solver, solve_args)
     
     # Set inital state and observation
-    s0 = T.(problem.u0) # Convert type
+    ic_sampler = UniformSampler(s0_lb, s0_ub)
+    s0 = T.(ic_sampler()) # Convert type
     o0 = T.(observation_fn(s0, nothing)) # initial observations
+
     n_states = length(s0)
     n_observations = length(o0)
 
@@ -105,13 +109,48 @@ function DiffEqEnv(
     steps = 0
     t = problem.tspan[1]
 
-    env = DiffEqEnv{T}(ode_params, 
+    env = DiffEqEnv{T}(ode_params, ic_sampler,
             observation_space, action_space,
             observation_fn, reward_fn,
             state, observation, action, reward, done, steps, t)
     return env
 end
 
+"""
+User-facing constructor for DiffEqEnv with constant ICs
+"""
+function DiffEqEnv(
+    problem::ODEProblem, 
+    reward_fn::RewardFunction,
+    n_actions::Int,
+    dt::Real;
+    #= Keyword arguments =#
+    observation_fn::ObservationFunction=FullStateObservation(),
+    o_ub::Union{Nothing,Real,Vector{<:Real}}=nothing, # upper bound for observation space
+    o_lb::Union{Nothing,Real,Vector{<:Real}}=nothing, # lower bound for observation space
+    a_ub::Union{Nothing,Real,Vector{<:Real}}=nothing, # upper bound for action space
+    a_lb::Union{Nothing,Real,Vector{<:Real}}=nothing, # lower bound for action space
+    solver::DiffEqBase.AbstractODEAlgorithm=Euler(), 
+    reltol::Real=1e-8, 
+    abstol::Real=1e-8, # TODO: add more kwargs for integrator
+    T=Float64
+    )
+
+    #= Set bounds for ICs to same values
+    This ensures that the same IC gets sampled by env.ic_sampler =#
+    s0_lb = T.(problem.u0)
+    s0_ub = s0_lb
+    
+    return DiffEqEnv(problem, reward_fn, n_actions, dt, s0_lb, s0_ub;
+        observation_fn=observation_fn,
+        o_ub=o_ub, o_lb=o_lb, a_ub=a_ub, a_lb=a_lb,
+        solver=solver, reltol=reltol, abstol=abstol, T=T)
+
+end
+
+"""
+RLBase interface for use with ReinforcementLearning.jl
+"""
 RLBase.get_actions(env::DiffEqEnv) = env.action_space
 RLBase.get_state(env::DiffEqEnv) = env.observation # returns observed state, not markov state!
 RLBase.get_reward(env::DiffEqEnv) = env.reward
@@ -119,7 +158,7 @@ RLBase.get_terminal(env::DiffEqEnv) = env.done
 
 function RLBase.reset!(env::DiffEqEnv{T}) where {T <: Real}
     # Reset environment
-    env.state = T.(env.ode_params.problem.u0)
+    env.state = T.(env.ic_sampler())
     env.action = nothing
     env.observation = T.(env.observation_fn(env.state, env.action))
     env.reward = nothing
