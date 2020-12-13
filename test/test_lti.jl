@@ -26,8 +26,8 @@ env = LTIQuadraticEnv(A, B, C, D, Q, R, s0, tspan, dt; a_lb=-1, a_ub=1)
 hook = TotalRewardPerEpisode()
 run(
     Agent(
-        ;policy = RandomPolicy(env),
-        trajectory = VectCompactSARTSATrajectory(
+        ;policy=RandomPolicy(env),
+        trajectory=VectCompactSARTSATrajectory(
             state_type=Any,
             action_type=Any,
             reward_type=Real,

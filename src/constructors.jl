@@ -19,7 +19,7 @@ function LTIQuadraticEnv(
     T=Float32
     )
 
-    n_states, n_actions, _ = state_space_validation(A,B,C,D,Continuous())
+    n_states, n_actions, _ = state_space_validation(A, B, C, D, Continuous())
     length(s0) == n_states || throw(ArgumentError("Length $(length(s0)) of s0 doesn't match state dimension $(n_states)")) 
 
     function ode(s, a, t) 
