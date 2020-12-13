@@ -5,10 +5,12 @@ using DiffEqBase: AbstractODEAlgorithm
 using DifferentialEquations
 using LinearAlgebra
 using OrdinaryDiffEq: isadaptive
+using Random
 using ReinforcementLearningBase
 
 include("rewards.jl")
 include("observations.jl")
+include("ic_samplers.jl")
 include("environment.jl")
 include("constructors.jl")
 include("policies.jl")
@@ -19,6 +21,9 @@ export SASReward, SAReward, ASReward, QuadraticReward, DecrementingReward
 # Export observation functions 
 export CustomObservation, LinearObservation
 export CustomStateObservation, LinearStateObservation, FullStateObservation
+
+# Export IC samplers
+export UniformSampler
 
 # Export Policies
 export FeedbackPolicy, LinearFeedbackPolicy, LQRPolicy
