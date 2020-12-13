@@ -17,8 +17,8 @@ RLBase.update!(p::FeedbackPolicy, args...) = nothing
 """
 Linear state feedback policy ``a=\\pi(s)=Ks``
 """
-LinearFeedbackPolicy(K) = FeedbackPolicy(s -> K * reshape(s,:))
-LinearFeedbackPolicy(K, a_lb, a_ub) = FeedbackPolicy(s -> clamp.(K * reshape(s,:), a_lb, a_ub))    
+LinearFeedbackPolicy(K) = FeedbackPolicy(s -> K * reshape(s, :))
+LinearFeedbackPolicy(K, a_lb, a_ub) = FeedbackPolicy(s -> clamp.(K * reshape(s, :), a_lb, a_ub))    
 
 """
 Discrete LQR state feedback policy.
@@ -38,7 +38,6 @@ function LQRPolicy(A, B, Q, R, dt, a_lb, a_ub)
     K = _dlqr_from_cont_ss(A, B, Q, R, dt)
     return LinearFeedbackPolicy(-K, a_lb, a_ub)
 end
-
 
 function _dlqr_from_cont_ss(A, B, Q, R, dt)
     # Build discrete state-space model using place-holder matrices C, D
