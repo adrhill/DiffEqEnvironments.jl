@@ -1,5 +1,6 @@
 """
 Constructs LTI system with quadratic reward and uniformly sampled initial conditions.
+Key-word arguments match those of `DiffEqEnv`.
 """
 function LTIQuadraticEnv(
     A::AbstractVecOrMat,
@@ -12,15 +13,7 @@ function LTIQuadraticEnv(
     s0_ub::Union{Real,Vector{<:Real}},
     tspan::Tuple{<:Real,<:Real},
     dt::Real;
-    #= Keyword arguments =#
-    o_ub::Union{Nothing,Real,Vector{<:Real}}=nothing, # upper bound for observation space
-    o_lb::Union{Nothing,Real,Vector{<:Real}}=nothing, # lower bound for observation space
-    a_ub::Union{Nothing,Real,Vector{<:Real}}=nothing, # upper bound for action space
-    a_lb::Union{Nothing,Real,Vector{<:Real}}=nothing, # lower bound for action space
-    solver::DiffEqBase.AbstractODEAlgorithm=Tsit5(), 
-    reltol::Real=1e-8, 
-    abstol::Real=1e-8, # TODO: add more kwargs for integrator
-    T=Float32
+    kwargs...
     )
 
     n_states, n_actions, _ = state_space_validation(A, B, C, D, Continuous())
@@ -38,16 +31,12 @@ function LTIQuadraticEnv(
     reward_fn = QuadraticReward(Q, R)
     observation_fn = LinearObservation(C, D)
 
-    return DiffEqEnv(problem, reward_fn, n_actions, dt, s0_lb, s0_ub;  
-        observation_fn=observation_fn,
-        o_ub=o_ub, o_lb=o_lb, a_ub=a_ub, a_lb=a_lb,
-        solver=solver, reltol=reltol, abstol=abstol,
-        T=T
-    )
+    return DiffEqEnv(problem, reward_fn, n_actions, dt, s0_lb, s0_ub; kwargs...)
 end
 
 """
 Constructs LTI system with quadratic reward and constant initial conditions.
+Key-word arguments match those of `DiffEqEnv`.
 """
 function LTIQuadraticEnv(
     A::AbstractVecOrMat,
@@ -59,22 +48,12 @@ function LTIQuadraticEnv(
     s0::Union{Real,Vector{<:Real}},
     tspan::Tuple{<:Real,<:Real},
     dt::Real;
-    #= Keyword arguments =#
-    o_ub::Union{Nothing,Real,Vector{<:Real}}=nothing, # upper bound for observation space
-    o_lb::Union{Nothing,Real,Vector{<:Real}}=nothing, # lower bound for observation space
-    a_ub::Union{Nothing,Real,Vector{<:Real}}=nothing, # upper bound for action space
-    a_lb::Union{Nothing,Real,Vector{<:Real}}=nothing, # lower bound for action space
-    solver::DiffEqBase.AbstractODEAlgorithm=Tsit5(), 
-    reltol::Real=1e-8, 
-    abstol::Real=1e-8, # TODO: add more kwargs for integrator
-    T=Float32
+    kwargs...
     )
 
     s0_lb = s0
     s0_ub = s0
 
     return LTIQuadraticEnv(A, B, C, D, Q, R, 
-        s0_lb, s0_ub, tspan, dt;
-        o_ub=o_ub, o_lb=o_lb, a_ub=a_ub, a_lb=a_lb,
-        solver=solver, reltol=reltol, abstol=abstol, T=T)
+        s0_lb, s0_ub, tspan, dt; kwargs...)
 end
