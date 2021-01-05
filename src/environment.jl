@@ -8,7 +8,7 @@ mutable struct DiffEqParams{T}
     solve_args::Dict                # dictionary holding kwargs for ODE solve command
 end
 
-mutable struct DiffEqEnv{T} <: AbstractEnv
+mutable struct DiffEqEnv{T,R<:AbstractRNG} <: AbstractEnv
     ode_params::DiffEqParams{T}
     ic_sampler::ICSampler
     # Parameters for ReinforcementLearning
@@ -25,6 +25,7 @@ mutable struct DiffEqEnv{T} <: AbstractEnv
     done::Bool                              # true if in terminal state 
     steps::Int                              # counter for steps taken in episode
     t::T                                    # current time
+    rng::R
 end
 
 """
@@ -46,7 +47,8 @@ function DiffEqEnv(
     solver::DiffEqBase.AbstractODEAlgorithm=Euler(), 
     reltol::Real=1e-8, 
     abstol::Real=1e-8, # TODO: add more kwargs for integrator
-    T=Float64
+    T=Float64,
+    rng=Random.GLOBAL_RNG
     )
     # Save solver arguments
     solve_args = Dict{Symbol,Any}(
@@ -58,8 +60,8 @@ function DiffEqEnv(
     ode_params = DiffEqParams{T}(problem, dt, solver, solve_args)
     
     # Set inital state and observation
-    ic_sampler = UniformSampler(s0_lb, s0_ub)
-    s0 = T.(ic_sampler()) # Convert type
+    ic_sampler = UniformSampler(s0_lb, s0_ub; rng=rng)
+    s0 = T.(ic_sampler()) # initial state
     o0 = T.(observation_fn(s0, nothing)) # initial observations
 
     n_states = length(s0)
@@ -109,10 +111,10 @@ function DiffEqEnv(
     steps = 0
     t = problem.tspan[1]
 
-    env = DiffEqEnv{T}(ode_params, ic_sampler,
+    env = DiffEqEnv{T, typeof(rng)}(ode_params, ic_sampler,
             observation_space, action_space,
             observation_fn, reward_fn,
-            state, observation, action, reward, done, steps, t)
+            state, observation, action, reward, done, steps, t, rng)
     return env
 end
 
@@ -124,16 +126,8 @@ function DiffEqEnv(
     reward_fn::RewardFunction,
     n_actions::Int,
     dt::Real;
-    #= Keyword arguments =#
-    observation_fn::ObservationFunction=FullStateObservation(),
-    o_ub::Union{Nothing,Real,Vector{<:Real}}=nothing, # upper bound for observation space
-    o_lb::Union{Nothing,Real,Vector{<:Real}}=nothing, # lower bound for observation space
-    a_ub::Union{Nothing,Real,Vector{<:Real}}=nothing, # upper bound for action space
-    a_lb::Union{Nothing,Real,Vector{<:Real}}=nothing, # lower bound for action space
-    solver::DiffEqBase.AbstractODEAlgorithm=Euler(), 
-    reltol::Real=1e-8, 
-    abstol::Real=1e-8, # TODO: add more kwargs for integrator
-    T=Float64
+    T=Float64, 
+    kwargs...
     )
 
     #= Set bounds for ICs to same values
@@ -141,11 +135,7 @@ function DiffEqEnv(
     s0_lb = T.(problem.u0)
     s0_ub = s0_lb
     
-    return DiffEqEnv(problem, reward_fn, n_actions, dt, s0_lb, s0_ub;
-        observation_fn=observation_fn,
-        o_ub=o_ub, o_lb=o_lb, a_ub=a_ub, a_lb=a_lb,
-        solver=solver, reltol=reltol, abstol=abstol, T=T)
-
+    return DiffEqEnv(problem, reward_fn, n_actions, dt, s0_lb, s0_ub; T, kwargs...)
 end
 
 """
