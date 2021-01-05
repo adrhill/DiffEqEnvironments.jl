@@ -1,4 +1,4 @@
-""" 
+"""
 Struct holding parameters for ODE solver
 """
 mutable struct DiffEqParams{T}
@@ -8,7 +8,7 @@ mutable struct DiffEqParams{T}
     solve_args::Dict                # dictionary holding kwargs for ODE solve command
 end
 
-mutable struct DiffEqEnv{T,R<:AbstractRNG} <: AbstractEnv
+mutable struct DiffEqEnv{T,R <: AbstractRNG} <: AbstractEnv
     ode_params::DiffEqParams{T}
     ic_sampler::ICSampler
     # Parameters for ReinforcementLearning
@@ -22,7 +22,7 @@ mutable struct DiffEqEnv{T,R<:AbstractRNG} <: AbstractEnv
     observation::Union{T,Vector{T}}         # current observation
     action::Union{Nothing,T,Vector{T}}      # last action
     reward::Union{Nothing,T}                # last scalar reward
-    done::Bool                              # true if in terminal state 
+    done::Bool                              # true if in terminal state
     steps::Int                              # counter for steps taken in episode
     t::T                                    # current time
     rng::R
@@ -32,7 +32,7 @@ end
 User-facing constructor for DiffEqEnv with IC sampling
 """
 function DiffEqEnv(
-    problem::ODEProblem, 
+    problem::ODEProblem,
     reward_fn::RewardFunction,
     n_actions::Int,
     dt::Real,
@@ -44,21 +44,22 @@ function DiffEqEnv(
     o_lb::Union{Nothing,Real,Vector{<:Real}}=nothing, # lower bound for observation space
     a_ub::Union{Nothing,Real,Vector{<:Real}}=nothing, # upper bound for action space
     a_lb::Union{Nothing,Real,Vector{<:Real}}=nothing, # lower bound for action space
-    solver::DiffEqBase.AbstractODEAlgorithm=Euler(), 
-    reltol::Real=1e-8, 
+    solver::DiffEqBase.AbstractODEAlgorithm=Euler(),
+    reltol::Real=1e-8,
     abstol::Real=1e-8, # TODO: add more kwargs for integrator
     T=Float64,
-    rng=Random.GLOBAL_RNG
-    )
+    rng=Random.GLOBAL_RNG,
+)
     # Save solver arguments
     solve_args = Dict{Symbol,Any}(
-        :reltol => reltol, 
+        :reltol => reltol,
         :abstol => abstol,
-        :save_everystep => false, 
-        :save_start => false) # only output terminal value
+        :save_everystep => false,
+        :save_start => false, # only output terminal value
+    )
 
     ode_params = DiffEqParams{T}(problem, dt, solver, solve_args)
-    
+
     # Set inital state and observation
     ic_sampler = UniformSampler(s0_lb, s0_ub; rng=rng)
     s0 = T.(ic_sampler()) # initial state
@@ -72,9 +73,9 @@ function DiffEqEnv(
         # Check if types match
         typeof(lb) == typeof(ub) ||
             throw(ArgumentError("$(typeof(lb)) != $(typeof(ub)), types must match"))
-        
+
         # Set defaults if no bounds are provided
-        if isnothing(lb) 
+        if isnothing(lb)
             if dim == 1
                 ub = T(1e38)
                 lb = -ub
@@ -89,7 +90,7 @@ function DiffEqEnv(
             throw(ArgumentError("$(size(lb)) != $(size(ub)), size must match"))
         length(lb) == dim ||
             throw(ArgumentError("$(size(lb)) != $(dim), size must match"))
-        
+
         # Return ContinuousSpace or MultiContinuousSpace
         if lb isa Real
             return ContinuousSpace(T(lb), T(ub))
@@ -97,7 +98,7 @@ function DiffEqEnv(
             return MultiContinuousSpace(T.(lb), T.(ub))
         end
     end
-    
+
     # Set observation and action spaces
     observation_space = set_space(o_lb, o_ub, n_observations)
     action_space = set_space(a_lb, a_ub, n_actions)
@@ -111,10 +112,22 @@ function DiffEqEnv(
     steps = 0
     t = problem.tspan[1]
 
-    env = DiffEqEnv{T, typeof(rng)}(ode_params, ic_sampler,
-            observation_space, action_space,
-            observation_fn, reward_fn,
-            state, observation, action, reward, done, steps, t, rng)
+    env = DiffEqEnv{T,typeof(rng)}(
+        ode_params,
+        ic_sampler,
+        observation_space,
+        action_space,
+        observation_fn,
+        reward_fn,
+        state,
+        observation,
+        action,
+        reward,
+        done,
+        steps,
+        t,
+        rng,
+    )
     return env
 end
 
@@ -122,19 +135,19 @@ end
 User-facing constructor for DiffEqEnv with constant ICs
 """
 function DiffEqEnv(
-    problem::ODEProblem, 
+    problem::ODEProblem,
     reward_fn::RewardFunction,
     n_actions::Int,
     dt::Real;
-    T=Float64, 
+    T=Float64,
     kwargs...
-    )
+)
 
     #= Set bounds for ICs to same values
     This ensures that the same IC gets sampled by env.ic_sampler =#
     s0_lb = T.(problem.u0)
     s0_ub = s0_lb
-    
+
     return DiffEqEnv(problem, reward_fn, n_actions, dt, s0_lb, s0_ub; T, kwargs...)
 end
 
@@ -155,7 +168,6 @@ function RLBase.reset!(env::DiffEqEnv{T}) where {T <: Real}
     env.done = false
     env.steps = 0
     env.t = env.ode_params.problem.tspan[1]
-
     return nothing
 end
 
@@ -164,17 +176,19 @@ function (env::DiffEqEnv{T})(action) where {T <: Real}
     action = T.(action)
 
     # unpack Array{T,1} with single value for use in ContinuousSpace{T}
-    if length(action) == 1 
-        action = action[] 
+    if length(action) == 1
+        action = action[]
     end
-    
+
     @assert action in env.action_space
 
     # Remake ODEProblem over new tspan
     t_end =  env.t + env.ode_params.dt
     tspan = (env.t, t_end)
-    prob = remake(env.ode_params.problem; 
-                u0=env.state, tspan=tspan, p=action)
+    prob = remake(
+        env.ode_params.problem;
+        u0=env.state, tspan=tspan, p=action,
+    )
 
     # Integrate ODE
     if isadaptive(env.ode_params.solver)
@@ -183,15 +197,14 @@ function (env::DiffEqEnv{T})(action) where {T <: Real}
         sol = solve(prob, env.ode_params.solver; env.ode_params.solve_args..., dt=t_end)
     end
     state_next = T.(sol.u[1]) # unpack Array{Array{T,1},1}
-    
+
     # Update environment buffer
     env.observation = T.(env.observation_fn(state_next, action))
     env.action = T.(action)
     env.reward = env.reward_fn(env.state, action, state_next) # update before env.state!
-    env.state = state_next 
+    env.state = state_next
     env.t = t_end # update before env.done!
     env.done = env.t >= env.ode_params.problem.tspan[2]
     env.steps += 1
-
     return nothing
- end
+end
