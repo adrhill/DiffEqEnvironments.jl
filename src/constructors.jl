@@ -13,16 +13,18 @@ function LTIQuadraticEnv(
     s0_ub::Union{Real,Vector{<:Real}},
     tspan::Tuple{<:Real,<:Real},
     dt::Real;
-    kwargs...
+    kwargs...,
 )
     n_states, n_actions, _ = state_space_validation(A, B, C, D, Continuous())
     ic_sampler = UniformSampler(s0_lb, s0_ub)
 
     # Sample random IC for dimension check and to define ODEProblem
     s0 = ic_sampler()
-    length(s0) == n_states || throw(ArgumentError(
-        "Length $(length(s0)) of s0 doesn't match state dimension $(n_states)"
-    ))
+    length(s0) == n_states || throw(
+        ArgumentError(
+            "Length $(length(s0)) of s0 doesn't match state dimension $(n_states)"
+        ),
+    )
 
     ode(s, a, t) = A * s + B * a # linear time-invariant ODE
     problem = ODEProblem(ode, s0, tspan)
@@ -46,7 +48,7 @@ function LTIQuadraticEnv(
     s0::Union{Real,Vector{<:Real}},
     tspan::Tuple{<:Real,<:Real},
     dt::Real;
-    kwargs...
+    kwargs...,
 )
     s0_lb = s0
     s0_ub = s0

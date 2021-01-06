@@ -11,9 +11,9 @@ when stepping through the environment.
 """
 
 # Define ODEProblem of scalar autonomous system
-ode(s,a,t) = 1.01 * s
+ode(s, a, t) = 1.01 * s
 s0 = 1 / 2
-tspan = (1f0, 2f0)
+tspan = (1.0f0, 2.0f0)
 problem = ODEProblem(ode, s0, tspan)
 
 # Solve ODE Problem for ground truth
@@ -32,7 +32,7 @@ env = DiffEqEnv(problem, r, n_actions, dt; T=Float32, solver=Tsit5())
 
 # Step through env until done
 while !env.done
-    env(0f0) # action doesn't matter for autonomous system
+    env(0.0f0) # action doesn't matter for autonomous system
 end
 
 @test env.steps == (tspan[2] - tspan[1]) / dt
@@ -47,7 +47,7 @@ RLBase.reset!(env)
 
 # Step through env until done
 while !env.done
-    env(0f0) # action doesn't matter for autonomous system
+    env(0.0f0) # action doesn't matter for autonomous system
 end
 
 @test env.steps == (tspan[2] - tspan[1]) / dt
@@ -55,10 +55,10 @@ end
 @test state(env) ≈ sol.u[end]
 
 #= = Remake env using different types T = =#
-env64 = DiffEqEnv(problem, r, n_actions, dt, T=Float64)
+env64 = DiffEqEnv(problem, r, n_actions, dt; T=Float64)
 @test state(env64) == s0
 
-env16 = DiffEqEnv(problem, r, n_actions, dt, T=Float16)
+env16 = DiffEqEnv(problem, r, n_actions, dt; T=Float16)
 @test state(env16) == s0
 
 # Test whether necessary interfaces from RLBase are implemented correctly and consistently

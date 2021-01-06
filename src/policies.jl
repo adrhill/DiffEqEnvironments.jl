@@ -12,24 +12,24 @@ Implement interface required for RLCore agent
 
 # policy stays constant
 RLBase.update!(p::FeedbackPolicy, experience) = nothing
-RLBase.update!(
-    p::FeedbackPolicy,
-    traj::AbstractTrajectory,
-    env::AbstractEnv,
-    stage::AbstractStage,
-) = nothing
-RLBase.update!(
-    p::FeedbackPolicy,
-    traj::AbstractTrajectory,
-    env::AbstractEnv,
-    stage::PreActStage,
-) = nothing
+function RLBase.update!(
+    p::FeedbackPolicy, traj::AbstractTrajectory, env::AbstractEnv, stage::AbstractStage
+)
+    return nothing
+end
+function RLBase.update!(
+    p::FeedbackPolicy, traj::AbstractTrajectory, env::AbstractEnv, stage::PreActStage
+)
+    return nothing
+end
 
 """
 Linear state feedback policy ``a=\\pi(s)=Ks``
 """
 LinearFeedbackPolicy(K) = FeedbackPolicy(s -> K * reshape(s, :))
-LinearFeedbackPolicy(K, a_lb, a_ub) = FeedbackPolicy(s -> clamp.(K * reshape(s, :), a_lb, a_ub))
+function LinearFeedbackPolicy(K, a_lb, a_ub)
+    return FeedbackPolicy(s -> clamp.(K * reshape(s, :), a_lb, a_ub))
+end
 
 """
 Discrete LQR state feedback policy.
@@ -53,12 +53,12 @@ end
 function _dlqr_from_cont_ss(A, B, Q, R, dt)
     # Build discrete state-space model using place-holder matrices C, D
     nx = size(A)[1]
-    na = size(B[:,:])[2]
+    na = size(B[:, :])[2]
 
     C = zeros(1, nx)
     D = zeros(1, na)
     sysd = ss(A, B, C, D, dt)
 
     # Compute discrete LQR gain matrix
-    K = lqr(sysd, Q, R)
+    return K = lqr(sysd, Q, R)
 end

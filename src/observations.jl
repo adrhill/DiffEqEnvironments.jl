@@ -5,7 +5,7 @@ struct ObservationFunction
     f
 end
 
-(of::ObservationFunction)(s,a) = of.f(s, a)
+(of::ObservationFunction)(s, a) = of.f(s, a)
 
 """  
 General observation of form ``o=of(s,a)``.
@@ -18,7 +18,6 @@ CustomObservation(of) = ObservationFunction(of)
 General observation of form ``o=of(s)``.
 """
 CustomStateObservation(of) = ObservationFunction((s, a) -> of(s))
-
 
 """  
 Full observation of state: ``o=s``.

@@ -8,12 +8,12 @@ mutable struct DiffEqParams{T}
     solve_args::Dict                # dictionary holding kwargs for ODE solve command
 end
 
-mutable struct DiffEqEnv{T,R <: AbstractRNG} <: AbstractEnv
+mutable struct DiffEqEnv{T,R<:AbstractRNG} <: AbstractEnv
     ode_params::DiffEqParams{T}
     ic_sampler::ICSampler
     # Parameters for ReinforcementLearning
-    observation_space::Union{Interval, Space}
-    action_space::Union{Interval, Space}
+    observation_space::Union{Interval,Space}
+    action_space::Union{Interval,Space}
     # Observation & reward functions
     observation_fn::ObservationFunction     # obvervation o=f(s)
     reward_fn::RewardFunction               # reward function r(s,a,s')
@@ -81,15 +81,14 @@ function DiffEqEnv(
                 lb = -ub
             else
                 ub = T(1e38) * ones(T, dim)
-                lb = - ub
+                lb = -ub
             end
         end
 
         # Check if sizes match
         length(lb) == length(ub) ||
             throw(ArgumentError("$(size(lb)) != $(size(ub)), size must match"))
-        length(lb) == dim ||
-            throw(ArgumentError("$(size(lb)) != $(dim), size must match"))
+        length(lb) == dim || throw(ArgumentError("$(size(lb)) != $(dim), size must match"))
 
         if lb isa Real
             return ClosedInterval{T}(lb, ub)
@@ -139,7 +138,7 @@ function DiffEqEnv(
     n_actions::Int,
     dt::Real;
     T=Float64,
-    kwargs...
+    kwargs...,
 )
 
     # Set bounds for ICs to same values
@@ -149,8 +148,6 @@ function DiffEqEnv(
 
     return DiffEqEnv(problem, reward_fn, n_actions, dt, s0_lb, s0_ub; T, kwargs...)
 end
-
-
 
 """
 RLBase interface for use with ReinforcementLearning.jl
@@ -166,10 +163,10 @@ RLBase.state(env::DiffEqEnv) = length(env.state) > 1 ? env.state : first(env.sta
 # Small patch to enable sampling on Intervals
 # e.g. used to sample actions on action_space for random policy
 function Random.rand(rng::AbstractRNG, s::Interval)
-    rand(rng) * (s.right - s.left) + s.left
+    return rand(rng) * (s.right - s.left) + s.left
 end
 
-function RLBase.reset!(env::DiffEqEnv{T}) where {T <: Real}
+function RLBase.reset!(env::DiffEqEnv{T}) where {T<:Real}
     # Reset environment
     env.state = T.(env.ic_sampler())
     env.action = nothing
@@ -181,7 +178,7 @@ function RLBase.reset!(env::DiffEqEnv{T}) where {T <: Real}
     return nothing
 end
 
-function (env::DiffEqEnv{T})(action) where {T <: Real}
+function (env::DiffEqEnv{T})(action) where {T<:Real}
     # type of action must fit with type of env.action_space
     action = T.(action)
 
@@ -193,12 +190,9 @@ function (env::DiffEqEnv{T})(action) where {T <: Real}
     @assert action ∈ env.action_space
 
     # Remake ODEProblem over new tspan
-    t_end =  env.t + env.ode_params.dt
+    t_end = env.t + env.ode_params.dt
     tspan = (env.t, t_end)
-    prob = remake(
-        env.ode_params.problem;
-        u0=env.state, tspan=tspan, p=action,
-    )
+    prob = remake(env.ode_params.problem; u0=env.state, tspan=tspan, p=action)
 
     # Integrate ODE
     if isadaptive(env.ode_params.solver)

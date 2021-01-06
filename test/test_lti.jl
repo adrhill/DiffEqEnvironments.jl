@@ -21,8 +21,7 @@ tspan = (0.0, 5.0)
 dt = 0.1
 T = Float32
 env = LTIQuadraticEnv(
-    A, B, C, D, Q, R, s0, tspan, dt;
-    a_lb=-1, a_ub=1, T=T, rng = StableRNG(123)
+    A, B, C, D, Q, R, s0, tspan, dt; a_lb=-1, a_ub=1, T=T, rng=StableRNG(123)
 )
 
 @test state(env) == C * s0 # test initial observation
