@@ -3,6 +3,7 @@ module DiffEqEnvironments
 using ControlSystems: ss, lqr, state_space_validation, Continuous
 using DiffEqBase: AbstractODEAlgorithm
 using DifferentialEquations
+using IntervalSets
 using LinearAlgebra
 using OrdinaryDiffEq: isadaptive
 using Random
@@ -18,7 +19,7 @@ include("policies.jl")
 # Export reward functions
 export SASReward, SAReward, ASReward, QuadraticReward, DecrementingReward
 
-# Export observation functions 
+# Export observation functions
 export CustomObservation, LinearObservation
 export CustomStateObservation, LinearStateObservation, FullStateObservation
 

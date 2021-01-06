@@ -12,8 +12,8 @@ mutable struct DiffEqEnv{T,R <: AbstractRNG} <: AbstractEnv
     ode_params::DiffEqParams{T}
     ic_sampler::ICSampler
     # Parameters for ReinforcementLearning
-    observation_space::Union{ContinuousSpace{T},MultiContinuousSpace{Vector{T}}}
-    action_space::Union{ContinuousSpace{T},MultiContinuousSpace{Vector{T}}}
+    observation_space::Union{Interval, Space}
+    action_space::Union{Interval, Space}
     # Observation & reward functions
     observation_fn::ObservationFunction     # obvervation o=f(s)
     reward_fn::RewardFunction               # reward function r(s,a,s')
@@ -91,11 +91,10 @@ function DiffEqEnv(
         length(lb) == dim ||
             throw(ArgumentError("$(size(lb)) != $(dim), size must match"))
 
-        # Return ContinuousSpace or MultiContinuousSpace
         if lb isa Real
-            return ContinuousSpace(T(lb), T(ub))
+            return ClosedInterval{T}(lb, ub)
         elseif lb isa Vector{<:Real}
-            return MultiContinuousSpace(T.(lb), T.(ub))
+            return Space(ClosedInterval{T}.(lb, ub))
         end
     end
 
@@ -143,21 +142,32 @@ function DiffEqEnv(
     kwargs...
 )
 
-    #= Set bounds for ICs to same values
-    This ensures that the same IC gets sampled by env.ic_sampler =#
+    # Set bounds for ICs to same values
+    # This ensures that the same IC gets sampled by env.ic_sampler
     s0_lb = T.(problem.u0)
     s0_ub = s0_lb
 
     return DiffEqEnv(problem, reward_fn, n_actions, dt, s0_lb, s0_ub; T, kwargs...)
 end
 
+
+
 """
 RLBase interface for use with ReinforcementLearning.jl
 """
-RLBase.get_actions(env::DiffEqEnv) = env.action_space
-RLBase.get_state(env::DiffEqEnv) = env.observation # returns observed state, not markov state!
-RLBase.get_reward(env::DiffEqEnv) = env.reward
-RLBase.get_terminal(env::DiffEqEnv) = env.done
+Random.seed!(env::DiffEqEnv, seed) = Random.seed!(env.rng, seed)
+
+RLBase.action_space(env::DiffEqEnv) = env.action_space
+RLBase.state_space(env::DiffEqEnv) = env.observation_space # observed state, not MDP state!
+RLBase.reward(env::DiffEqEnv) = env.reward
+RLBase.is_terminated(env::DiffEqEnv) = env.done
+RLBase.state(env::DiffEqEnv) = length(env.state) > 1 ? env.state : first(env.state)
+
+# Small patch to enable sampling on Intervals
+# e.g. used to sample actions on action_space for random policy
+function Random.rand(rng::AbstractRNG, s::Interval)
+    rand(rng) * (s.right - s.left) + s.left
+end
 
 function RLBase.reset!(env::DiffEqEnv{T}) where {T <: Real}
     # Reset environment
@@ -180,7 +190,7 @@ function (env::DiffEqEnv{T})(action) where {T <: Real}
         action = action[]
     end
 
-    @assert action in env.action_space
+    @assert action ∈ env.action_space
 
     # Remake ODEProblem over new tspan
     t_end =  env.t + env.ode_params.dt
