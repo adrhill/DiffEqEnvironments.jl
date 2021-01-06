@@ -8,6 +8,7 @@ using LinearAlgebra
 using OrdinaryDiffEq: isadaptive
 using Random
 using ReinforcementLearningBase
+using ReinforcementLearningCore
 
 include("rewards.jl")
 include("observations.jl")

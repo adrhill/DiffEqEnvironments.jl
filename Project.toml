@@ -12,6 +12,7 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 ReinforcementLearningBase = "e575027e-6cd6-5018-9292-cdc6200d2b44"
+ReinforcementLearningCore = "de1b191a-4ae0-4afa-a27b-92d07f46b2d6"
 
 [compat]
 ControlSystems = "0.8"
