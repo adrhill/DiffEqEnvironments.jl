@@ -1,5 +1,6 @@
 using DiffEqEnvironments
 using ReinforcementLearningBase
+using IntervalSets
 using Test
 
 # Test uniform_sampler on multivariate ICs
@@ -9,7 +10,7 @@ sampler = UniformSampler(s0_lb, s0_ub)
 
 @test sampler isa DiffEqEnvironments.ICSampler
 for _ ∈ 1:10
-    @test sampler() in MultiContinuousSpace(s0_lb, s0_ub)
+    @test sampler() in Space(ClosedInterval{Float32}.(s0_lb, s0_ub))
 end
 
 # Test uniform_sampler on univariate ICs
@@ -19,7 +20,7 @@ sampler = UniformSampler(s0_lb, s0_ub)
 
 @test sampler isa DiffEqEnvironments.ICSampler
 for _ ∈ 1:10
-    @test sampler()[] in ContinuousSpace(s0_lb, s0_ub)
+    @test sampler()[] in s0_lb .. s0_ub
 end
 
 # Sample constant ICs by using lb = ub (used in default constructor)
