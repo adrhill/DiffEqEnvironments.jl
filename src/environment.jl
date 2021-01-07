@@ -152,10 +152,14 @@ RLBase interface for use with ReinforcementLearning.jl
 Random.seed!(env::DiffEqEnv, seed) = Random.seed!(env.rng, seed)
 
 RLBase.action_space(env::DiffEqEnv) = env.action_space
-RLBase.state_space(env::DiffEqEnv) = env.observation_space # observed state, not MDP state!
 RLBase.reward(env::DiffEqEnv) = env.reward
 RLBase.is_terminated(env::DiffEqEnv) = env.done
-RLBase.state(env::DiffEqEnv) = length(env.state) > 1 ? env.state : first(env.state)
+
+# The following functions return observed state, not MDP state!
+RLBase.state_space(env::DiffEqEnv) = env.observation_space
+function RLBase.state(env::DiffEqEnv)
+    return length(env.observation) > 1 ? env.observation : first(env.observation)
+end
 
 # Small patch to enable sampling on Intervals
 # e.g. used to sample actions on action_space for random policy
