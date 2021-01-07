@@ -20,8 +20,7 @@ mutable struct DiffEqEnv{T,R<:AbstractRNG} <: AbstractEnv
     # Buffer for previous transition
     state::Union{T,Vector{T}}               # current state
     observation::Union{T,Vector{T}}         # current observation
-    action::Union{Nothing,T,Vector{T}}      # last action
-    reward::Union{Nothing,T}                # last scalar reward
+    reward::T                               # last scalar reward
     done::Bool                              # true if in terminal state
     steps::Int                              # counter for steps taken in episode
     t::T                                    # current time
@@ -104,8 +103,7 @@ function DiffEqEnv(
     # Initialize buffer holding previous step
     state = s0
     observation = o0
-    action = nothing
-    reward = nothing
+    reward = T(-Inf)
     done = false
     steps = 0
     t = problem.tspan[1]
@@ -119,7 +117,6 @@ function DiffEqEnv(
         reward_fn,
         state,
         observation,
-        action,
         reward,
         done,
         steps,
@@ -169,9 +166,8 @@ end
 function RLBase.reset!(env::DiffEqEnv{T}) where {T<:Real}
     # Reset environment
     env.state = T.(env.ic_sampler())
-    env.action = nothing
-    env.observation = T.(env.observation_fn(env.state, env.action))
-    env.reward = nothing
+    env.observation = T.(env.observation_fn(env.state, NaN))
+    env.reward = T(-Inf)
     env.done = false
     env.steps = 0
     env.t = env.ode_params.problem.tspan[1]
@@ -204,7 +200,6 @@ function (env::DiffEqEnv{T})(action) where {T<:Real}
 
     # Update environment buffer
     env.observation = T.(env.observation_fn(state_next, action))
-    env.action = T.(action)
     env.reward = env.reward_fn(env.state, action, state_next) # update before env.state!
     env.state = state_next
     env.t = t_end # update before env.done!
