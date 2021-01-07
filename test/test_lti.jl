@@ -1,5 +1,4 @@
 using DiffEqEnvironments
-using LinearAlgebra
 using ReinforcementLearningBase
 using ReinforcementLearningBase: test_interfaces!, test_runnable!
 using StableRNGs

@@ -1,10 +1,10 @@
-using DiffEqEnvironments
+using LinearAlgebra: dot
+using ControlSystems: lqr
 using DifferentialEquations
+using DiffEqEnvironments
 using ReinforcementLearningBase
 using ReinforcementLearningBase: test_interfaces!, test_runnable!
 using ReinforcementLearningCore
-using LinearAlgebra
-using ControlSystems
 using Test
 
 """
