@@ -55,6 +55,32 @@ end
 plot_value(v; kwargs...) = plot_value!(plot(), v; kwargs...)
 
 """
+Plot actions selected by deterministic policy π
+"""
+function plot_actions!(plot, π; levels=10)
+    ps = range(-1, 1; length=100)
+    ṗs = range(-1, 1; length=100)
+    πp(p, ṗ) = π([p, ṗ])
+
+    return contour(
+        ps,
+        ṗs,
+        πp;
+        levels=levels,
+        color=:vik,
+        fill=true,
+        title="Action a=π(s)",
+        xlabel="s",
+        ylabel="ṡ",
+        xlim=(-1, 1),
+        ylim=(-1, 1),
+        show=true,
+    )
+end
+
+plot_actions(π; kwargs...) = plot_actions!(plot(), π; kwargs...)
+
+"""
 Plot trajectory in state space
 """
 function plot_trajectory!(plt, ode, s0; tspan=(0.0f0, 5.0f0), saveat=0.01, c=:black, lw=3)
