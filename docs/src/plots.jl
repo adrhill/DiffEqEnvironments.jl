@@ -43,7 +43,7 @@ function plot_value!(plot, v; levels=10)
         vp;
         levels=levels,
         fill=true,
-        title="Value function",
+        title="Value function v(s)",
         xlabel="s",
         ylabel="ṡ",
         xlim=(-1, 1),
@@ -94,7 +94,7 @@ function plot_trajectory!(plt, ode, s0; tspan=(0.0f0, 5.0f0), saveat=0.01, c=:bl
         lw=lw,
         c=c,
         line=:arrow,
-        title="Trajectory",
+        title="Sample trajectory",
         xlabel="s",
         ylabel="ṡ",
         xlim=(-1, 1),
@@ -105,3 +105,20 @@ function plot_trajectory!(plt, ode, s0; tspan=(0.0f0, 5.0f0), saveat=0.01, c=:bl
 end
 
 plot_trajectory(ode, s0; kwargs...) = plot_trajectory!(plot(), ode, s0; kwargs...)
+
+"""
+Plot four subplots consisting of:
+- phase portrait
+- value function
+- sample trajectory
+- actions
+"""
+
+function plot_full(π, v; s0=[-0.5f0, -0.5f0], size=(600, 500))
+    p1 = plot_phase_portrait(cl_ode(π))
+    p2 = plot_value(v)
+    p3 = plot_trajectory(cl_ode(π), s0)
+    p4 = plot_actions(π)
+
+    return plot(p1, p2, p3, p4; layout=(2, 2), size=size)
+end
