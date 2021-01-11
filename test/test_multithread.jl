@@ -19,12 +19,14 @@ R = [1]
 s0 = [0.0, 0.0]
 tspan = (0.0, 5.0)
 dt = 0.1
+
 T = Float32
 n_envs = 10
+seed = 123
 
 env = MultiThreadEnv([
     LTIQuadraticEnv(
-        A, B, C, D, Q, R, s0, tspan, dt; a_lb=-1, a_ub=1, T=T, rng=StableRNG(hash(i))
+        A, B, C, D, Q, R, s0, tspan, dt; a_lb=-1, a_ub=1, T=T, rng=StableRNG(hash(seed + i))
     ) for i in 1:n_envs
 ])
 
