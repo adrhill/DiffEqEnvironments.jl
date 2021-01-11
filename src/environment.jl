@@ -62,7 +62,7 @@ function DiffEqEnv(
     # Set inital state and observation
     ic_sampler = UniformSampler(s0_lb, s0_ub; rng=rng)
     s0 = T.(ic_sampler()) # initial state
-    o0 = T.(observation_fn(s0, nothing)) # initial observations
+    o0 = T.(observation_fn(s0, NaN)) # initial observations
 
     n_states = length(s0)
     n_observations = length(o0)
