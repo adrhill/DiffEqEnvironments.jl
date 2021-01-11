@@ -147,6 +147,18 @@ function DiffEqEnv(
 end
 
 """
+RLBase Traits
+"""
+RLBase.NumAgentStyle(env::DiffEqEnv) = SINGLE_AGENT
+RLBase.DynamicStyle(env::DiffEqEnv) = SEQUENTIAL # single agent
+RLBase.ActionStyle(env::DiffEqEnv) = MINIMAL_ACTION_SET # all actions considered legal
+RLBase.InformationStyle(env::DiffEqEnv) = PERFECT_INFORMATION # single agent
+RLBase.StateStyle(env::DiffEqEnv) = Observation{Any}() # can be set to InternalState{Any}() in case of FullStateObservation()
+RLBase.RewardStyle(env::DiffEqEnv) = STEP_REWARD # can in some cases be set to TERMINAL_REWARD
+RLBase.UtilityStyle(env::DiffEqEnv) = GENERAL_SUM
+RLBase.ChanceStyle(env::DiffEqEnv) = DETERMINISTIC # TODO: check if correct w/ random ICs
+
+"""
 RLBase interface for use with ReinforcementLearning.jl
 """
 Random.seed!(env::DiffEqEnv, seed) = Random.seed!(env.rng, seed)
