@@ -66,5 +66,19 @@ display(plot(p1, p2, p3; layout=(1, 3), size=(900, 250)))
 # Call constructor for LTI systems to try out LQR Policy
 using DiffEqEnvironments
 using ReinforcementLearningCore
+
 dt = 0.1
 env = LTIQuadraticEnv(A, B, C, D, Q, R, s0, tspan, dt; a_lb=-1, a_ub=1, T=T)
+lqr_policy = LQRPolicy(A, B, Q, R, dt, a_lb, a_ub)
+n_states, n_actions = 2, 1
+
+hook = TotalRewardPerEpisode()
+agent_lqr = Agent(;
+    policy=lqr_policy,
+    trajectory=CircularArraySARTTrajectory(;
+        capacity=1000, state=Vector{T} => (n_states,), action=Vector{T} => (n_actions,)
+    ),
+)
+
+run(agent_lqr, env, StopAfterEpisode(10), hook)
+display(hook.rewards)
