@@ -156,7 +156,7 @@ RLBase.InformationStyle(env::DiffEqEnv) = PERFECT_INFORMATION # single agent
 RLBase.StateStyle(env::DiffEqEnv) = Observation{Any}() # can be set to InternalState{Any}() in case of FullStateObservation()
 RLBase.RewardStyle(env::DiffEqEnv) = STEP_REWARD # can in some cases be set to TERMINAL_REWARD
 RLBase.UtilityStyle(env::DiffEqEnv) = GENERAL_SUM
-RLBase.ChanceStyle(env::DiffEqEnv) = DETERMINISTIC # TODO: check if correct w/ random ICs
+RLBase.ChanceStyle(env::DiffEqEnv) = STOCHASTIC # due to random ICs
 
 """
 RLBase interface for use with ReinforcementLearning.jl
