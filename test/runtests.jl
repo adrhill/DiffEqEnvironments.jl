@@ -12,9 +12,9 @@ using SafeTestsets
     @time @safetestset "LTIQuadraticEnv" begin
         include("test_lti.jl")
     end
-    @time @safetestset "MultiThreadEnv" begin
-        include("test_multithread.jl")
-    end
+    # @time @safetestset "MultiThreadEnv" begin
+    #     include("test_multithread.jl")
+    # end
     @time @safetestset "IC sampler" begin
         include("test_ic_sampler.jl")
     end
