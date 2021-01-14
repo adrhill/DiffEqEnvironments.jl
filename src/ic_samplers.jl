@@ -2,7 +2,7 @@
 Base struct for all DiffEqEnvironments.jl IC samplers.
 """
 struct ICSampler
-    sample::Any
+    sample::Function
 end
 
 (ics::ICSampler)() = ics.sample()

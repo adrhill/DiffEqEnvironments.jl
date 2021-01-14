@@ -2,7 +2,7 @@
 Base struct for all DiffEqEnvironments.jl rewards.
 """
 struct RewardFunction
-    f
+    f::Function
 end
 
 (rf::RewardFunction)(s, a, s_next) = rf.f(s, a, s_next)

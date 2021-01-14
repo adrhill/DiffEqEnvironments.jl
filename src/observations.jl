@@ -2,7 +2,7 @@
 Base struct for all DiffEqEnvironments.jl observations.
 """
 struct ObservationFunction
-    f
+    f::Function
 end
 
 (of::ObservationFunction)(s, a) = of.f(s, a)

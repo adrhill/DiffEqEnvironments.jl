@@ -1,10 +1,10 @@
 """
 Struct holding parameters for ODE solver
 """
-mutable struct DiffEqParams{T}
+mutable struct DiffEqParams{T,A<:AbstractODEAlgorithm}
     problem::ODEProblem             # ODEProblem which is simulated
     dt::T                           # time step size
-    solver::AbstractODEAlgorithm    # solver to use to solve ODE
+    solver::A                       # solver to use to solve ODE
     solve_args::Dict                # dictionary holding kwargs for ODE solve command
 end
 
@@ -57,7 +57,8 @@ function DiffEqEnv(
         :save_start => false, # only output terminal value
     )
 
-    ode_params = DiffEqParams{T}(problem, dt, solver, solve_args)
+    A = typeof(solver)
+    ode_params = DiffEqParams{T,A}(problem, dt, solver, solve_args)
 
     # Set inital state and observation
     ic_sampler = UniformSampler(s0_lb, s0_ub; rng=rng)

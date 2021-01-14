@@ -2,7 +2,7 @@
 Struct for deterministic state feedback policies of type ``a=\\pi(s)``
 """
 struct FeedbackPolicy <: AbstractPolicy
-    π
+    π::Function
 end
 
 """
