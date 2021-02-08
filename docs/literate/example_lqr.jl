@@ -1,7 +1,4 @@
-```@meta
-EditURL = "<unknown>/docs/literate/example_lqr.jl"
-```
-
+#=
 # Linear quadratic problems
 
 ## The rocket car problem
@@ -21,8 +18,6 @@ Let's do better using methods from Reinforcement Learning and Control Theory!
 
 ![](https://i.imgur.com/AzGqjL0.gif)
 
-
-
 ### Linear time-invariant quadratic problems
 
 Writing down the first-order ODE, we are given
@@ -41,59 +36,49 @@ After discretization of the system dynamics, this can be viewed as a [finite-hor
 ## Creating the rocket car environment
 ### System dynamics
 Writing down the linear system dynamics and weights for the reward function is straightforward:
+=#
 
-```@example example_lqr
-# System dynamics
+## System dynamics
 A = [0 1; 0 0]
 B = [0; 1]
 C = [1 0; 0 1]
 D = [0; 0]
 
-# Quadratic reward
+## Quadratic reward
 Q = [1 0; 0 1]
 R = [1][:, :]
-```
 
-We also define the range of control inputs as $\mathcal{A}=[-1,1]$ and set the range of initial conditions as $s_0\in[-1,1]^2$, from which we will uniformly sample.
+# We also define the range of control inputs as $\mathcal{A}=[-1,1]$ and set the range of initial conditions as $s_0\in[-1,1]^2$, from which we will uniformly sample.
 
-```@example example_lqr
-# bounds on actions
+## bounds on actions
 a_lb = -1.0
 a_ub = 1.0
 
-# bounds on states
+## bounds on states
 s0_lb = [-1.0, -1.0]
 s0_ub = [1.0, 1.0]
-```
 
-Finally, we need to specify the time horizon at the end of which the environment will be terminated and the discrete time step-size of the environment.
+# Finally, we need to specify the time horizon at the end of which the environment will be terminated and the discrete time step-size of the environment.
 
-```@example example_lqr
 tspan = (0.0f0, 2.0f0)
 dt = 0.1
-```
 
-### Creating an environment using `LTIQuadraticEnv`
-Instead of manually defining an ODE,
-
-```@example example_lqr
+# ### Creating an environment using `LTIQuadraticEnv`
+# Instead of manually defining an ODE,
 function lti_ode(s, a, t)
     return ṡ = A * s + B * a
 end
-```
 
-`DiffEqEnvironments` offers a simple constructor for LTI environments:
+# `DiffEqEnvironments` offers a simple constructor for LTI environments:
 
-```@example example_lqr
 using DiffEqEnvironments
 
-env = LTIQuadraticEnv(A, B, C, D, Q, R, s0_lb, s0_ub, tspan, dt; a_lb=a_lb, a_ub=a_ub, T=Float32)
-```
+env = LTIQuadraticEnv(
+    A, B, C, D, Q, R, s0_lb, s0_ub, tspan, dt; a_lb=a_lb, a_ub=a_ub, T=Float32
+)
 
-## Control theory: Linear quadratic regulator
-### Algebraic Riccati equations with `ControlSystems.jl`
-
-```@example example_lqr
+# ## Control theory: Linear quadratic regulator
+# ### Algebraic Riccati equations with `ControlSystems.jl`
 using DifferentialEquations
 using LinearAlgebra
 using ControlSystems
@@ -101,30 +86,21 @@ using ControlSystems
 P = care(A, B, Q, R)
 K = R \ B' * P
 println("K=", K)
-```
 
-Calculating the matrix $\mathbf{P}$ in a separate step is useful, as the state-value function is obtained for free as $v(s)= -s^T\mathbf{P}s$.
+# Calculating the matrix $\mathbf{P}$ in a separate step is useful, as the state-value function is obtained for free as $v(s)= -s^T\mathbf{P}s$.
 
-```@example example_lqr
 v_lqr(s) = -s' * P * s / 2
-```
 
-The linear-quadratic regulator can now be applied as $\pi(s)=-\mathbf{K}s$. As a final step, we apply thresholds for input limits.
+# The linear-quadratic regulator can now be applied as $\pi(s)=-\mathbf{K}s$. As a final step, we apply thresholds for input limits.
 
-```@example example_lqr
 π_lqr(s) = clamp(first(-K * s), a_lb, a_ub)
-```
 
-### Using `LQRPolicy` as a baseline
-The same policy can also be obtained in `DiffEqEnv` as
-
-```@example example_lqr
+# ### Using `LQRPolicy` as a baseline
+# The same policy can also be obtained in `DiffEqEnv` as
 lqr_policy = LQRPolicy(A, B, Q, R, dt, a_lb, a_ub)
-```
 
-We can use `LQRPolicy` as part of an actor in a typical `ReinforcementLearning.jl` experiment:
+# We can use `LQRPolicy` as part of an actor in a typical `ReinforcementLearning.jl` experiment:
 
-```@example example_lqr
 using ReinforcementLearningCore
 
 n_states, n_actions = 2, 1
@@ -133,21 +109,21 @@ hook = TotalRewardPerEpisode()
 agent_lqr = Agent(;
     policy=lqr_policy,
     trajectory=CircularArraySARTTrajectory(;
-        capacity=1000, state=Vector{Float32} => (n_states,), action=Vector{Float32} => (n_actions,)
+        capacity=1000,
+        state=Vector{Float32} => (n_states,),
+        action=Vector{Float32} => (n_actions,),
     ),
 )
 
 run(agent_lqr, env, StopAfterEpisode(1), hook)
-```
 
-## Reinforcement Learning
+# ## Reinforcement Learning
+#
+# The following example is adapted from the `ReinforcementLearningZoo.jl` [example on DDPG on a pendulum](https://github.com/JuliaReinforcementLearning/ReinforcementLearningZoo.jl/blob/master/src/experiments/rl_envs/JuliaRL_DDPG_Pendulum.jl).
+#
+# ### DDPG agent
+# After importing all necessary packages,
 
-The following example is adapted from the `ReinforcementLearningZoo.jl` [example on DDPG on a pendulum](https://github.com/JuliaReinforcementLearning/ReinforcementLearningZoo.jl/blob/master/src/experiments/rl_envs/JuliaRL_DDPG_Pendulum.jl).
-
-### DDPG agent
-After importing all necessary packages,
-
-```@example example_lqr
 using StableRNGs
 using ReinforcementLearningBase
 using ReinforcementLearningCore
@@ -156,11 +132,9 @@ using IntervalSets
 
 seed = 123
 rng = StableRNG(seed)
-```
 
-the neural networks for the actor-critic architecture are specified
+# the neural networks for the actor-critic architecture are specified
 
-```@example example_lqr
 init = glorot_uniform(rng)
 
 function create_actor()
@@ -178,11 +152,8 @@ function create_critic()
         Dense(30, 1; initW=init),
     )
 end
-```
 
- before calling RLZoo's `DDPGPolicy`:
-
-```@example example_lqr
+#  before calling RLZoo's `DDPGPolicy`:
 agent = Agent(;
     policy=DDPGPolicy(;
         behavior_actor=NeuralNetworkApproximator(; model=create_actor(), optimizer=ADAM()),
@@ -206,20 +177,20 @@ agent = Agent(;
         capacity=10000, state=Vector{Float32} => (n_states,), action=Float32 => ()
     ),
 )
-```
 
+#=
 ### Running the experiment
 `ReinforcementLearning.jl` evaluates experiments throught the use of "hooks". For the purpose of simplicity in these docs, a `ComposedHook` that pushes losses into empty arrays is used for logging.[^logging-note]
 
 [^logging-note]: It is usually be a better choice to use `TensorBoardLogger.jl`, [as done in the DDPG pendulum example](https://github.com/JuliaReinforcementLearning/ReinforcementLearningZoo.jl/blob/335662aedc944146bba188f9f74edc4602c1e580/src/experiments/rl_envs/JuliaRL_DDPG_Pendulum.jl#L79-L97).
+=#
 
-```@example example_lqr
-# empty arrays for logging
+## empty arrays for logging
 actor_losses = []
 critic_losses = []
 total_rewards = []
 
-# building-blocks for composed hook
+## building-blocks for composed hook
 total_reward_per_episode = TotalRewardPerEpisode()
 time_per_step = TimePerStep()
 
@@ -232,41 +203,26 @@ hook = ComposedHook(
         push!(total_rewards, total_reward_per_episode.reward)
     end,
 )
-```
 
-We can now run the agent and visualize the
-
-```@example example_lqr
+# We can now run the agent and visualize the
 run(agent, env, StopAfterStep(10_000), hook)
 
-# plot results
+## plot results
 using Plots
 plot([actor_losses, critic_losses, total_rewards]; layout=(3, 1))
-```
 
-# Evaluating the agents
-To evaluate our policies, we visualize the value function as well es the phase-plot of out rocket-car environment in closed-loop with our policy.
-
-## LQR
-Except for non-linearities introduced by clamping the output of the LQR-policy between ``[-1,1]``, the value function `v_lqr(s)` is an analytical solution to the linear time-invariant quadratic problem
-
-```@example example_lqr
+# # Evaluating the agents
+# To evaluate our policies, we visualize the value function as well es the phase-plot of out rocket-car environment in closed-loop with our policy.
+#
+# ## LQR
+# Except for non-linearities introduced by clamping the output of the LQR-policy between ``[-1,1]``, the value function `v_lqr(s)` is an analytical solution to the linear time-invariant quadratic problem
 include("plots.jl")
 plot_full(π_lqr, v_lqr)
-```
 
-## DDPG
-When comparing our learned value function to this policy, we observe that
-
-```@example example_lqr
+# ## DDPG
+# When comparing our learned value function to this policy, we observe that
 π_ddpg(s) = first(agent.policy.behavior_actor(s))
 q_ddpg(s, a) = first(agent.policy.behavior_critic(vcat(s, a)))
 v_ddpg(s) = q_ddpg(s, π_ddpg(s))
 
 plot_full(π_ddpg, v_ddpg)
-```
-
----
-
-*This page was generated using [Literate.jl](https://github.com/fredrikekre/Literate.jl).*
-
