@@ -28,7 +28,47 @@ mutable struct DiffEqEnv{T,R<:AbstractRNG} <: AbstractEnv
 end
 
 """
-User-facing constructor for DiffEqEnv with IC sampling
+    DiffEqEnv(problem::ODEProblem, reward_fn::RewardFunction, n_actions::Int, dt::Real,
+        s0_lb::Union{Real,Vector{<:Real}}, s0_ub::Union{Real,Vector{<:Real}}; kwargs...)
+
+# Arguments
+
+  - `problem::ODEProblem`:
+    `ODEProblem` containing the differental equation. Refer to the docs of
+    [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl)
+    for examples on how to set up such a problem.
+
+  - `reward_fn::RewardFunction`:
+    Reward function for Reinforcement Learning. The objective of the RL agent is to
+    maximize the expected sum of rewards.
+  - `n_actions::Int`:
+    Input dimensionality of the environment. In RL terminology, this is the dimensionality
+    of the action space. In terms of control, the dimensionality of the control input.
+  - `dt::Real`:
+    Discrete time-steps between action selections. Can be interpreted as a zero-order hold
+    on actions sampled from the agent's policy. If a fixed step-width solver like `Euler` is
+    selected, `dt` will also be used for integration of the ODE.
+  - `s0_lb::Union{Real,Vector{<:Real}}`:
+    Lower bound on the state space from which **initial conditions** are uniformly sampled.
+  - `s0_ub::Union{Real,Vector{<:Real}}`:
+    Upper bound on the state space from which **initial conditions** are uniformly sampled.
+
+# Keyword arguments:
+
+  - `observation_fn::ObservationFunction`:
+    Function ``o=f(s)`` that maps the *inner* states `s` of the environment
+    to observations `o`.
+
+  - `o_lb::Union{Nothing,Real,Vector{<:Real}}=nothing`:
+    Lower bound on the observation space.
+  - `o_ub::Union{Nothing,Real,Vector{<:Real}}=nothing`:
+    Upper bound on the observation space.
+  - `a_lb::Union{Nothing,Real,Vector{<:Real}}=nothing`:
+    Lower bound on the action space.
+  - `a_ub::Union{Nothing,Real,Vector{<:Real}}=nothing`:
+    Upper bound on the action space. Defaults to `nothing`.
+  - `solver::DiffEqBase.AbstractODEAlgorithm`:
+    Solver used when calling `solve` on the `ODEProblem`. Defaults to `Euler`.
 """
 function DiffEqEnv(
     problem::ODEProblem,
@@ -68,38 +108,9 @@ function DiffEqEnv(
     n_states = length(s0)
     n_observations = length(o0)
 
-    # Helper function to set action and observation spaces
-    function set_space(lb, ub, dim)
-        # Check if types match
-        typeof(lb) == typeof(ub) ||
-            throw(ArgumentError("$(typeof(lb)) != $(typeof(ub)), types must match"))
-
-        # Set defaults if no bounds are provided
-        if isnothing(lb)
-            if dim == 1
-                ub = T(1e38)
-                lb = -ub
-            else
-                ub = T(1e38) * ones(T, dim)
-                lb = -ub
-            end
-        end
-
-        # Check if sizes match
-        length(lb) == length(ub) ||
-            throw(ArgumentError("$(size(lb)) != $(size(ub)), size must match"))
-        length(lb) == dim || throw(ArgumentError("$(size(lb)) != $(dim), size must match"))
-
-        if lb isa Real
-            return ClosedInterval{T}(lb, ub)
-        elseif lb isa Vector{<:Real}
-            return Space(ClosedInterval{T}.(lb, ub))
-        end
-    end
-
     # Set observation and action spaces
-    observation_space = set_space(o_lb, o_ub, n_observations)
-    action_space = set_space(a_lb, a_ub, n_actions)
+    observation_space = _set_space(o_lb, o_ub, n_observations)
+    action_space = _set_space(a_lb, a_ub, n_actions)
 
     # Initialize buffer holding previous step
     state = s0
@@ -128,7 +139,7 @@ function DiffEqEnv(
 end
 
 """
-User-facing constructor for DiffEqEnv with constant ICs
+Constructor for DiffEqEnv with constant ICs
 """
 function DiffEqEnv(
     problem::ODEProblem,
@@ -139,8 +150,7 @@ function DiffEqEnv(
     kwargs...,
 )
 
-    # Set bounds for ICs to same values
-    # This ensures that the same IC gets sampled by env.ic_sampler
+    # Set bounds for IC to same value, ensuring that same IC gets sampled by env.ic_sampler
     s0_lb = T.(problem.u0)
     s0_ub = s0_lb
 

@@ -2,7 +2,7 @@ module DiffEqEnvironments
 
 using ControlSystems: ss, lqr, state_space_validation, Continuous
 using DiffEqBase: AbstractODEAlgorithm
-using DifferentialEquations
+using DifferentialEquations: ODEProblem, solve, remake
 using IntervalSets
 using LinearAlgebra
 using OrdinaryDiffEq: isadaptive
@@ -13,6 +13,7 @@ using ReinforcementLearningCore
 include("rewards.jl")
 include("observations.jl")
 include("ic_samplers.jl")
+include("set_spaces.jl")
 include("environment.jl")
 include("lti_constructors.jl")
 include("policies.jl")
