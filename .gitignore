@@ -2,6 +2,7 @@
 *.jl.*.cov
 *.jl.cov
 *.jl.mem
+/Manifest.toml
 
 # macOS
 *.DS_Store
@@ -9,3 +10,4 @@
 # folders
 /docs/build
 /_draft
+/.vscode
