@@ -14,7 +14,7 @@ include("rewards.jl")
 include("observations.jl")
 include("ic_samplers.jl")
 include("environment.jl")
-include("constructors.jl")
+include("lti_constructors.jl")
 include("policies.jl")
 
 # Export reward functions
