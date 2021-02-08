@@ -9,16 +9,16 @@ using Test
 
 """
 This test defines an SISO system of form
-    ṡ = A*s + B*a
-    o = C*s
+ṡ = A*s + B*a
+o = C*s
 for the rocket car problem, where
-    s = [p, ṗ]  ,
+s = [p, ṗ]  ,
 p being the position of the car.
 The action used as an input to the system is
 the car's acceleration p̈ ∈ [-1, 1]. Therefore
-    ṡ = [ṗ, p̈] = [0 1; 0 0] * s + [0; 1] * u .
+ṡ = [ṗ, p̈] = [0 1; 0 0] * s + [0; 1] * u .
 Full observation of the state is given, as
-    o = s   .
+o = s   .
 """
 T = Float32
 

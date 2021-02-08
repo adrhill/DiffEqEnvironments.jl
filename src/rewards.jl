@@ -32,7 +32,7 @@ function QuadraticReward(Q, R)
 end
 
 """
-Reward ``r(s')=0``` if ``s'`` is terminal, ``r(s')=-1`` else
+Reward ``r(s')=0``` if``s'``is terminal,``r(s')=-1`` else
 """
 function DecrementingReward(s_next, condition_fn)
     r(s, a, s_next) = condition_fn(s_next) ? 0 : -1

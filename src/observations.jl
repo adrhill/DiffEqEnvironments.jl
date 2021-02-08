@@ -10,7 +10,6 @@ end
 """
 General observation of form ``o=of(s,a)``.
 Passed function `of` requires a case `of(s, a::Nothing)`
-    for ini
 """
 CustomObservation(of) = ObservationFunction(of)
 
